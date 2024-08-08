@@ -1,0 +1,38 @@
+# My Bags
+
+*Disclaimer: I do this for fun. I do this mainly for myself :). There are other bag addons with great support, but just lacked the flexibility in the setup of the bags that I wanted. To be on a safe side you might consider using those as I cannot guarantee keeping this up to date.*
+
+
+Work in progress
+
+
+
+## Design decisions 
+
+Here are a list of decisions regarding features of this addon.
+
+### I want this addon to be super simple.
+
+This addon is not inteded to be configurable. It is inteded to have some default behaviour that I hope will fit some people that will decided to use it.
+
+### Addon is build on top of existing bags
+
+Idea is to expand current default bags funcionalities, create a separate bag addon. I have observed bag addons behaving in a way, that once I disabled them there were many features added to default bags, but due to total rewriter they were not available in those addons - either knowingly or not.
+
+### Will display items as they are in bag slots as they are
+
+This allows for any new features supported by default game bags to be available out of the box.
+
+## Things to consider to change:
+
+* [solved I think] click on an item in the bag requires you to drop it onto a different item in anothe rcategory. You cannot click another category which is miasligned with the ability to drag onto another category. Same when draggoning on the categories in edit mode.
+* when dropping an item on bg it should it be assigned to latest category in the column.
+* when too many items are to expand the height to far, the addon should try to automatically split fiven categories into separate columns.
+* the config should be stored in account wide config so maybe at some point we could introduce profiles.
+* display empty space if available to show how many items we can still add as well as allow for stack splits.
+* When moving items from vendor or bank by mouse consider allowing for direct association with a category. Currently only dropping on items would work, but in the case of bank this results in items switching places. The only way is to right click which is doable, but then association with category has to be done afterwards resulting in two clicks which would be good to avoid.
+* there is a lot of bad code, broken domains. Especially in the place of:
+  * custom categories and categories,
+  * which code [class/domain] should trigger visual updates as it is a random to an extent at this point
+* a lot of todo's
+* add support for other bags. This is not a priority. I am doing this for fun and I feel current implementation of handling of the main bag kinda of works, I want to be adjusting it to a point I will be happy with it's behaviour. when I will extend the support onto other bags.

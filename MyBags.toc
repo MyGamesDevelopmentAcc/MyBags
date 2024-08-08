@@ -1,0 +1,20 @@
+## Interface: 110000
+## Title: |CFFFF2459My|r |CFF112459Bags
+## DefaultState: Enabled
+## Version: @project-version@
+## SavedVariablesPerCharacter: MyBagsDB
+### AddonCompartmentFunc: MyTestsAddon_MinimapOnClick
+## Dependencies:  MyLibrary_GUI, MyLibrary_Common
+
+utils/orderedMap.lua
+init.lua
+dragndrop.lua
+gui.lua
+categoriesGUI.lua
+itemsOrder.lua
+categories.lua
+Categorizers/new.lua
+Categorizers/EquipmentSet.lua
+Categorizers/custom.lua
+Categorizers/quest.lua
+Categorizers/junk.lua
