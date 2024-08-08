@@ -29,7 +29,7 @@ AddonNS.COLUMN_SPACING = COLUMN_SPACING;
 AddonNS.MAX_ROWS = 20
 AddonNS.MAX_ITEMS_PER_COLUMN = AddonNS.MAX_ROWS * ITEMS_PER_ROW;
 --
-
+AddonNS.itemButtonPlaceholder = {}
 
 
 
@@ -121,11 +121,9 @@ local function newIterator(container, index)
         if (info) then
             itemButton.ItemCategory = AddonNS.Categories:Categorize(info.itemID, itemButton);
             arrangedItems[itemButton.ItemCategory] = arrangedItems[itemButton.ItemCategory] or
-                { itemsCount = 0, items = {} }
+                { }
 
-            table.insert(arrangedItems[itemButton.ItemCategory].items, itemButton);
-            arrangedItems[itemButton.ItemCategory].itemsCount = arrangedItems[itemButton.ItemCategory].itemsCount +
-            1                                                                                                         -- todo: is this count still needed?
+            table.insert(arrangedItems[itemButton.ItemCategory], itemButton);
         else
             AddonNS.emptyItemButton = itemButton;
         end
@@ -136,7 +134,7 @@ local function newIterator(container, index)
         categoryPositions = {};
         local function placeItemsInGrid(categoriesObj, columnStartX)
             local currentRow = {}
-            local itemPlaceholder = {};
+            local itemPlaceholder = AddonNS.itemButtonPlaceholder;
             local currentRowWidth = 0
             local currentRowY = 0
             --local rowSubcolumn =0
@@ -163,7 +161,7 @@ local function newIterator(container, index)
             end
 
             for i, categoryObj in ipairs(categoriesObj) do
-                local categoryItemsCount = math.max(#categoryObj.items, 1);
+                local categoryItemsCount = #categoryObj.items;
                 if (#currentRow == 0) then
                     currentRowY = currentRowY + CATEGORY_HEIGHT;
                 elseif #currentRow > 0 and (rowWithNewCategory and currentRowWidth + itemSize * (categoryItemsCount) > ITEMS_PER_ROW * itemSize or not rowWithNewCategory) then
@@ -171,7 +169,7 @@ local function newIterator(container, index)
                     currentRowY = currentRowY + CATEGORY_HEIGHT + COLUMN_SPACING;
                 end
                 local expandCategoryToRightColumnBoundary = (#currentRow + categoryItemsCount < ITEMS_PER_ROW and
-                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and math.max(1, #categoriesObj[i + 1].items) or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
+                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and  #categoriesObj[i + 1] or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
                     (ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
                 table.insert(categoryPositions,
                     {
@@ -185,9 +183,6 @@ local function newIterator(container, index)
                     });
                 rowWithNewCategory = true;
                 local items = categoryObj.items;
-                if (#items == 0) then
-                    items = {itemPlaceholder}
-                end
                 for j = #items, 1, -1 do
                     local item = items[j];
                     if #currentRow >= ITEMS_PER_ROW then

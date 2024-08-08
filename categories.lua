@@ -64,8 +64,8 @@ local function getCategorySafeNameForStorage(category)
 end
 local function getBagSize(arrangedItems)
     local sum = 0;
-    for _, obj in pairs(arrangedItems) do
-        sum = sum + obj.itemsCount;
+    for _, items in pairs(arrangedItems) do
+        sum = sum + #items;
     end
     return sum;
 end
@@ -75,9 +75,10 @@ function AddonNS.Categories:GetLastCategoryInColumn(columnNo)
 end
 
 function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
-    local constantCategoryRemaining = {};
     for i, constantCategory in ipairs(AddonNS.Categories:GetConstantCategories()) do
-        constantCategoryRemaining[constantCategory] = true;
+        if not arrangedItems[constantCategory] then
+            arrangedItems[constantCategory] = {AddonNS.itemButtonPlaceholder}
+        end
     end
     categoryAssignments = { {}, {}, {} };
     local columnSum = { 0, 0, 0 };
@@ -138,13 +139,8 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
         for _, categoryName in ipairs(categoriesNames) do
             local tempCat = AddonNS.Categories:GetCategoryByName(categoryName)
             if (arrangedItems[tempCat]) then
-                addCategoryToColumn(tempCat, arrangedItems[tempCat].items, colIndex);
+                addCategoryToColumn(tempCat, arrangedItems[tempCat], colIndex);
                 knownCategories[tempCat] = true;
-            elseif (constantCategoryRemaining[tempCat]) then
-                addCategoryToColumn(tempCat, {}, colIndex);
-            end
-            if (constantCategoryRemaining[tempCat]) then
-                constantCategoryRemaining[tempCat] = false;
             end
         end
     end
@@ -153,27 +149,30 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     local predictedItemsPerColumn = getBagSize(arrangedItems) / AddonNS.NUM_COLUMNS * 1.1; -- 1.1 modifier to make sure initial columns get more items
     local column = 1;
     AddonNS.printDebug(arrangedItems)
-    for category, obj in pairs(arrangedItems) do
+
+    local categoriesToAssign = {};
+    for category, items in pairs(arrangedItems) do
         if not knownCategories[category] then
+            table.insert(categoriesToAssign, category);
+        end
+    end
+    table.sort(categoriesToAssign, function (a, b)
+        if a.name == nil then
+            return false  -- Treat nil as greater than any other value
+        elseif b.name == nil then
+            return true   -- Treat any value as less than nil
+        else
+            return a.name < b.name  -- Regular comparison for non-nil values
+        end
+    end)
+
+    for index, category in ipairs(categoriesToAssign) do
             while (columnSum[column] > predictedItemsPerColumn and column <= AddonNS.NUM_COLUMNS) do
                 column = column + 1;
             end
-
-            local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category].items, column);
+            local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category], column);
             table.insert(categoriesColumnAssignments[firstAssignedColumn], getCategorySafeNameForStorage(category));
-            if (constantCategoryRemaining[category]) then
-                constantCategoryRemaining[category] = false;
-            end
-        end
     end
-    column = AddonNS.NUM_COLUMNS;
-    for category, remaining in pairs(constantCategoryRemaining) do
-        if (remaining) then
-            addCategoryToColumn(category, {}, column);
-            table.insert(categoriesColumnAssignments[column], getCategorySafeNameForStorage(category));
-        end
-    end
-
     return categoryAssignments;
 end
 

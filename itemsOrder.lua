@@ -28,9 +28,9 @@ end
 
 function AddonNS.ItemsOrder:Sort(itemButtonsList)
     -- Create a map for quick lookup of the order positions
+    if (itemButtonsList[1] == AddonNS.itemButtonPlaceholder) then return; end;
     recreateAnOrderMapIfNeeded()
     local itemToItemIDMap = {};
-
     for i = #itemButtonsList, 1, -1 do
         itemToItemIDMap[itemButtonsList[i]] = C_Container.GetContainerItemInfo(itemButtonsList[i]:GetBagID(),
             itemButtonsList[i]:GetID()).itemID;
@@ -88,7 +88,7 @@ local function ItemsMoved(previousItemID, pickedItemID, changedCategory)
     recreateAnOrderMapIfNeeded();
     local prevNo = order_map[previousItemID];
     local pickedNo = order_map[pickedItemID];
-    
+
     AddonNS.printDebug(prevNo, pickedNo)
     if not prevNo or not pickedNo then
         AddonNS.printDebug("ERROR, moving items that are not ordered. Contact dev how did this happen.")

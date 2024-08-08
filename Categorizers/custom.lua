@@ -5,6 +5,22 @@ local Custom = {};
 AddonNS.CustomCategories = {}
 local categorizedItems = {}
 local customCategories = {}
+
+AddonNS.Categories:RegisterCategorizer("Custom categorizer", Custom);
+
+-- function Custom:GetConstantCategories()
+--     local categories = {};
+--     for i, _ in pairs(customCategories) do
+--         table.insert(categories, i);
+--     end
+--     table.sort(categories)
+--     return categories;
+-- end
+
+function Custom:Categorize(itemID)
+    return categorizedItems[itemID];
+end
+
 function AddonNS.CustomCategories:OnInitialize()
 
     AddonNS.db.customCategories = AddonNS.db.customCategories or customCategories;
@@ -27,7 +43,6 @@ function AddonNS.CustomCategories:GetCategories()
     return categories;
 end
 
-AddonNS.Categories:RegisterCategorizer("Custom categorizer", Custom);
 
 function AddonNS.CustomCategories:NewCategory(categoryName)
     customCategories[categoryName] = customCategories[categoryName] or {};
@@ -59,9 +74,6 @@ function AddonNS.CustomCategories:DeleteCategory(categoryName)
     AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CUSTOM_CATEGORY_DELETED, categoryName);
 end
 
-function Custom:Categorize(itemID)
-    return categorizedItems[itemID];
-end
 
 local function itemMoved(eventName, pickedItemID, targetedItemID, pickedItemCategory, targetItemCategory,
                          pickedItemButton,
