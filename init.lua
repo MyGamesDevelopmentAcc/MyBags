@@ -91,7 +91,7 @@ local height = 0;
 AddonNS.emptyItemButton = nil
 local function newIterator(container, index)
     local index, itemButton = it(container, index);
-    if (index == 1)  then AddonNS.emptyItemButton = nil end -- reset itemButom
+    if (index == 1) then AddonNS.emptyItemButton = nil end  -- reset itemButom
     if (itemButton) then
         -- [[ checking hooks]]
         if (not itemButton.myBagAddonHooked) then
@@ -111,7 +111,7 @@ local function newIterator(container, index)
                 end);
             itemButton:HookScript("OnDragStart", AddonNS.DragAndDrop.itemStartDrag);
 
-            itemButton.myBagAddonHooked = true; 
+            itemButton.myBagAddonHooked = true;
         end
 
 
@@ -124,7 +124,8 @@ local function newIterator(container, index)
                 { itemsCount = 0, items = {} }
 
             table.insert(arrangedItems[itemButton.ItemCategory].items, itemButton);
-            arrangedItems[itemButton.ItemCategory].itemsCount = arrangedItems[itemButton.ItemCategory].itemsCount + 1 -- todo: is this count still needed?
+            arrangedItems[itemButton.ItemCategory].itemsCount = arrangedItems[itemButton.ItemCategory].itemsCount +
+            1                                                                                                         -- todo: is this count still needed?
         else
             AddonNS.emptyItemButton = itemButton;
         end
@@ -135,6 +136,7 @@ local function newIterator(container, index)
         categoryPositions = {};
         local function placeItemsInGrid(categoriesObj, columnStartX)
             local currentRow = {}
+            local itemPlaceholder = {};
             local currentRowWidth = 0
             local currentRowY = 0
             --local rowSubcolumn =0
@@ -143,12 +145,14 @@ local function newIterator(container, index)
             local function flushCurrentRow()
                 local xOffset = 0
                 for _, item in ipairs(currentRow) do
-                    positionsInBags[item:GetBagID()] = positionsInBags[item:GetBagID()] or {};
-                    positionsInBags[item:GetBagID()][item:GetID()] = {
-                        id = item:GetID(),
-                        x = columnStartX + xOffset,
-                        y = currentRowY,
-                    };
+                    if item ~= itemPlaceholder then
+                        positionsInBags[item:GetBagID()] = positionsInBags[item:GetBagID()] or {};
+                        positionsInBags[item:GetBagID()][item:GetID()] = {
+                            id = item:GetID(),
+                            x = columnStartX + xOffset,
+                            y = currentRowY,
+                        };
+                    end
                     xOffset = xOffset + itemSize
                 end
                 currentRow = {}
@@ -159,27 +163,31 @@ local function newIterator(container, index)
             end
 
             for i, categoryObj in ipairs(categoriesObj) do
+                local categoryItemsCount = math.max(#categoryObj.items, 1);
                 if (#currentRow == 0) then
                     currentRowY = currentRowY + CATEGORY_HEIGHT;
-                elseif #currentRow > 0 and (rowWithNewCategory and currentRowWidth + itemSize * (#categoryObj.items) > ITEMS_PER_ROW * itemSize or not rowWithNewCategory) then
+                elseif #currentRow > 0 and (rowWithNewCategory and currentRowWidth + itemSize * (categoryItemsCount) > ITEMS_PER_ROW * itemSize or not rowWithNewCategory) then
                     flushCurrentRow();
                     currentRowY = currentRowY + CATEGORY_HEIGHT + COLUMN_SPACING;
                 end
-                local expandCategoryToRightColumnBoundary = (#currentRow + #categoryObj.items < ITEMS_PER_ROW and
-                        #currentRow + #categoryObj.items + (categoriesObj[i + 1] and #categoriesObj[i + 1].items or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
-                    (ITEMS_PER_ROW - #currentRow - #categoryObj.items) or 0
+                local expandCategoryToRightColumnBoundary = (#currentRow + categoryItemsCount < ITEMS_PER_ROW and
+                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and math.max(1, #categoriesObj[i + 1].items) or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
+                    (ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
                 table.insert(categoryPositions,
                     {
                         category = categoryObj.category,
                         x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
                         y = currentRowY - CATEGORY_HEIGHT, --- ITEM_SPACING / 2
                         width = itemSize *
-                            (#categoryObj.items > ITEMS_PER_ROW and ITEMS_PER_ROW or #categoryObj.items + expandCategoryToRightColumnBoundary),
-                        height = CATEGORY_HEIGHT + math.ceil(#categoryObj.items / ITEMS_PER_ROW) *
+                            (categoryItemsCount > ITEMS_PER_ROW and ITEMS_PER_ROW or categoryItemsCount + expandCategoryToRightColumnBoundary),
+                        height = CATEGORY_HEIGHT + math.ceil(categoryItemsCount / ITEMS_PER_ROW) *
                             itemSize,
                     });
                 rowWithNewCategory = true;
                 local items = categoryObj.items;
+                if (#items == 0) then
+                    items = {itemPlaceholder}
+                end
                 for j = #items, 1, -1 do
                     local item = items[j];
                     if #currentRow >= ITEMS_PER_ROW then

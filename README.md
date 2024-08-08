@@ -32,6 +32,7 @@ This allows for any new features supported by default game bags to be available 
 * [solved] when buying from merchant you should be able to drop an item onto a free space to buy the item as long as there is an itembutton available
 * [solved] When moving items from vendor or bank by mouse consider allowing for direct association with a category. Currently only dropping on items would work, but in the case of bank this results in items switching places. The only way is to right click which is doable, but then association with category has to be done afterwards resulting in two clicks which would be good to avoid.
 * [solved] when moving an item from bank you should be able to assing to a category
+* [solved] make it possible to always display certain categories, even if it is empty currently. I mean "Junk" - I want to see it all the time for cleanup purposes.
 * the config should be stored in account wide config so maybe at some point we could introduce profiles.
 * reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
 * show somewhere how many empty spaces are left

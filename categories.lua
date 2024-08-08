@@ -18,6 +18,23 @@ function AddonNS.Categories:RegisterCategorizer(name, categorizer, protected)
     categorizers:set(name, { categorizer = categorizer, protected = protected });
 end
 
+function AddonNS.Categories:GetConstantCategories()
+    local constantCategories = {}
+    for _, categorizerDef in categorizers:iterate() do
+        if (categorizerDef.categorizer.GetConstantCategories) then
+            local categoriesNames = categorizerDef.categorizer:GetConstantCategories();
+            for i, categoryName in ipairs(categoriesNames) do
+                local protected = categorizerDef.protected;
+                if not categories[categoryName] then
+                    categories[categoryName] = { name = categoryName, protected = protected };
+                end
+                table.insert(constantCategories, categories[categoryName]);
+            end
+        end
+    end
+    return constantCategories;
+end
+
 function AddonNS.Categories:Categorize(itemID, itemButton)
     local categoryName;
     local protected = false;
@@ -32,8 +49,6 @@ function AddonNS.Categories:Categorize(itemID, itemButton)
 
     if not categories[categoryName] then
         categories[categoryName] = { name = categoryName, protected = protected };
-    elseif protected then
-        categories[categoryName].protected = protected;
     end
     return categories[categoryName];
 end
@@ -60,6 +75,10 @@ function AddonNS.Categories:GetLastCategoryInColumn(columnNo)
 end
 
 function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
+    local constantCategoryRemaining = {};
+    for i, constantCategory in ipairs(AddonNS.Categories:GetConstantCategories()) do
+        constantCategoryRemaining[constantCategory] = true;
+    end
     categoryAssignments = { {}, {}, {} };
     local columnSum = { 0, 0, 0 };
     local knownCategories = {};
@@ -71,36 +90,42 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
         AddonNS.printDebug(category.name)
         AddonNS.printDebug(#items)
         AddonNS.ItemsOrder:Sort(items);
-        while #items > 0 do
-            AddonNS.printDebug("a", #items)
-            local itemsBatch = {}
-            if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then
-                local itemsToFit = MAX_ITEMS_PER_COLUMN - columnSum[column]
-                AddonNS.printDebug("to fit;", itemsToFit)
-                itemsBatch = items;
-                items = {};
-                local o = 1;
-                for i = itemsToFit + 1, #itemsBatch do
-                    items[o] = itemsBatch[i];
-                    itemsBatch[i] = nil;
-                    o = o + 1;
+        if (#items == 0) then
+            firstColumn = column;
+            table.insert(categoryAssignments[column], { category = category, items = items });
+            -- categoryAssignments[column], { category = category, items = itemsBatch })
+        else
+            while #items > 0 do
+                AddonNS.printDebug("a", #items)
+                local itemsBatch = {}
+                if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then
+                    local itemsToFit = MAX_ITEMS_PER_COLUMN - columnSum[column]
+                    AddonNS.printDebug("to fit;", itemsToFit)
+                    itemsBatch = items;
+                    items = {};
+                    local o = 1;
+                    for i = itemsToFit + 1, #itemsBatch do
+                        items[o] = itemsBatch[i];
+                        itemsBatch[i] = nil;
+                        o = o + 1;
+                    end
+                    AddonNS.printDebug("o;", o);
+                else
+                    itemsBatch = items;
+                    items = {};
                 end
-                AddonNS.printDebug("o;", o);
-            else
-                itemsBatch = items;
-                items = {};
-            end
-            columnSum[column] = columnSum[column] + #itemsBatch
-            AddonNS.printDebug("c", #itemsBatch, column)
-            if (#itemsBatch > 0) then
-                table.insert(categoryAssignments[column], { category = category, items = itemsBatch });
-                firstColumn = firstColumn or column
-            end
+                columnSum[column] = columnSum[column] + #itemsBatch
+                AddonNS.printDebug("c", #itemsBatch, column)
+                if (#itemsBatch > 0) then
+                    table.insert(categoryAssignments[column], { category = category, items = itemsBatch });
+                    firstColumn = firstColumn or column
+                end
 
-            if #items > 0 then
-                column = column + 1
-                if column > AddonNS.NUM_COLUMNS then
-                    column = 1 -- Reset to the first column if we exceed the number of columns
+                if #items > 0 then
+                    column = column + 1
+                    if column > AddonNS.NUM_COLUMNS then
+                        column = 1 -- Reset to the first column if we exceed the number of columns
+                    end
                 end
             end
         end
@@ -112,9 +137,14 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         for _, categoryName in ipairs(categoriesNames) do
             local tempCat = AddonNS.Categories:GetCategoryByName(categoryName)
-            if (tempCat and arrangedItems[tempCat]) then
+            if (arrangedItems[tempCat]) then
                 addCategoryToColumn(tempCat, arrangedItems[tempCat].items, colIndex);
                 knownCategories[tempCat] = true;
+            elseif (constantCategoryRemaining[tempCat]) then
+                addCategoryToColumn(tempCat, {}, colIndex);
+            end
+            if (constantCategoryRemaining[tempCat]) then
+                constantCategoryRemaining[tempCat] = false;
             end
         end
     end
@@ -131,6 +161,16 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
 
             local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category].items, column);
             table.insert(categoriesColumnAssignments[firstAssignedColumn], getCategorySafeNameForStorage(category));
+            if (constantCategoryRemaining[category]) then
+                constantCategoryRemaining[category] = false;
+            end
+        end
+    end
+    column = AddonNS.NUM_COLUMNS;
+    for category, remaining in pairs(constantCategoryRemaining) do
+        if (remaining) then
+            addCategoryToColumn(category, {}, column);
+            table.insert(categoriesColumnAssignments[column], getCategorySafeNameForStorage(category));
         end
     end
 
