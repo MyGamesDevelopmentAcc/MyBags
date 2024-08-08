@@ -77,7 +77,6 @@ function AddonNS.CustomCategories:AssignToCategory(newCategory, itemID)
     AddonNS.printDebug("AssignToCategory changing category of ", itemID, " to ", newCategory and newCategory.name)
     local newCategoryName = newCategory and newCategory.name;
     self:AssignToCategoryByName(newCategoryName, itemID)
-
 end
 
 function AddonNS.CustomCategories:AssignToCategoryByName(newCategoryName, itemID)

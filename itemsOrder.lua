@@ -20,7 +20,6 @@ local function recreateAnOrderMapIfNeeded()
     if order_map_changed then
         order_map = {};
         for index, id in ipairs(items_current_order) do
-            AddonNS.printDebug("recreating", index, id);
             order_map[id] = index
         end
         order_map_changed = false;
@@ -28,7 +27,6 @@ local function recreateAnOrderMapIfNeeded()
 end
 
 function AddonNS.ItemsOrder:Sort(itemButtonsList)
-    AddonNS.printDebug("called sort with ", #itemButtonsList);
     -- Create a map for quick lookup of the order positions
     recreateAnOrderMapIfNeeded()
     local itemToItemIDMap = {};

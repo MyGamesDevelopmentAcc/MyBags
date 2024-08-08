@@ -15,7 +15,7 @@ AddonNS.init = function(db)
 end
 LibStub("MyLibrary_DB").asyncLoad("MyBagsDB", AddonNS.init);
 function AddonNS.printDebug(...)
-    --  AddonNS.printDebug(...)
+    --  print(...)
 end
 
 local ITEMS_PER_ROW = 4 -- Maximum items per row
@@ -88,13 +88,13 @@ local rows = 0;
 local height = 0;
 
 
-
+AddonNS.emptyItemButton = nil
 local function newIterator(container, index)
     local index, itemButton = it(container, index);
-
+    if (index == 1)  then AddonNS.emptyItemButton = nil end -- reset itemButom
     if (itemButton) then
         -- [[ checking hooks]]
-        if (not itemButton.myBagLeftClickHooked) then
+        if (not itemButton.myBagAddonHooked) then
             -- TODO: prolly need to remove this hook when not merged bags are used to not destroy by accident proper categorisations?
             -- todo: this should be done once during these creation steps, not here.
 
@@ -111,7 +111,7 @@ local function newIterator(container, index)
                 end);
             itemButton:HookScript("OnDragStart", AddonNS.DragAndDrop.itemStartDrag);
 
-            itemButton.myBagLeftClickHooked = true; 
+            itemButton.myBagAddonHooked = true; 
         end
 
 
@@ -125,6 +125,8 @@ local function newIterator(container, index)
 
             table.insert(arrangedItems[itemButton.ItemCategory].items, itemButton);
             arrangedItems[itemButton.ItemCategory].itemsCount = arrangedItems[itemButton.ItemCategory].itemsCount + 1 -- todo: is this count still needed?
+        else
+            AddonNS.emptyItemButton = itemButton;
         end
     else --[[ iterator finished so we can now tackle the list and calcualte the positions of items, as we now have all the items]]
         local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING;
@@ -157,7 +159,6 @@ local function newIterator(container, index)
             end
 
             for i, categoryObj in ipairs(categoriesObj) do
-                AddonNS.printDebug(#categoryObj.items);
                 if (#currentRow == 0) then
                     currentRowY = currentRowY + CATEGORY_HEIGHT;
                 elseif #currentRow > 0 and (rowWithNewCategory and currentRowWidth + itemSize * (#categoryObj.items) > ITEMS_PER_ROW * itemSize or not rowWithNewCategory) then
@@ -179,8 +180,6 @@ local function newIterator(container, index)
                     });
                 rowWithNewCategory = true;
                 local items = categoryObj.items;
-                AddonNS.printDebug("Dodaje tyle: ",categoryObj.items,#categoryObj.items)
-                AddonNS.ItemsOrder:Sort(items);
                 for j = #items, 1, -1 do
                     local item = items[j];
                     if #currentRow >= ITEMS_PER_ROW then
@@ -261,9 +260,7 @@ container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
 
         anchor.SetPointWithExtraOffset = extend(anchor.SetPointWithExtraOffset,
             function(f, self, possibleItem, clearAllPoints, extraOffsetX, extraOffsetY)
-                AddonNS.printDebug("called SetPointWithExtraOffset with:", self, possibleItem, clearAllPoints, extraOffsetX, extraOffsetY)
                 if (possibleItem.ItemCategory) then
-                    AddonNS.printDebug(positionsInBags,positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()])
                     local newXOffset = positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].x;
                     local newYOffset = -positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].y + yFrameOffset;
                     possibleItem:Show();

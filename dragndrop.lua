@@ -10,10 +10,19 @@ local pickedItemCategory = nil;
 local pickedItemButton = nil;
 local container = AddonNS.container;
 
-
-
+function AddonNS.DragAndDrop.cleanUp()
+    AddonNS.printDebug("cleanUp")
+    pickedItemButton = nil;
+    pickedItemID = nil
+    pickedItemCategory = nil;
+end
 
 --[[
+unknown item -> item
+- assign new category to item
+- refresh gear (buttons) ItemCategories
+- change button order
+
 item -> item
 - assign new category to item
 - refresh gear (buttons) ItemCategories
@@ -34,9 +43,8 @@ function AddonNS.DragAndDrop.itemOnClick(self, button)
     if button == "LeftButton" then
         local infoType, itemID, itemLink = GetCursorInfo()
         AddonNS.printDebug(pickedItemButton, infoType, itemID, itemLink)
-        if (pickedItemButton and infoType) then
+        if (infoType) then
             AddonNS.DragAndDrop.itemOnReceiveDrag(self)
-            AddonNS.DragAndDrop.cleanUp()
         else
             AddonNS.DragAndDrop.itemStartDrag(self);
         end
@@ -48,11 +56,9 @@ function AddonNS.DragAndDrop.itemStartDrag(self)
     AddonNS.printDebug("itemStartDrag")
     local info = C_Container.GetContainerItemInfo(self:GetBagID(), self:GetID());
     if (info) then
-        -- if (CursorHasItem()) then
         pickedItemButton = self;
         pickedItemID = info.itemID
         pickedItemCategory = self.ItemCategory;
-        -- end
     end
 end
 
@@ -63,16 +69,21 @@ function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
     local targetItemCategory = self.ItemCategory;
 
     AddonNS.printDebug("1")
-    if (pickedItemButton) then                             
-        local infoType, itemID, itemLink = GetCursorInfo()
-        AddonNS.printDebug("2", infoType, itemID, pickedItemID)
-        if infoType == "item" and itemID == pickedItemID then
-            AddonNS.printDebug("3")
-            local info = C_Container.GetContainerItemInfo(self:GetBagID(), self:GetID());
-            local targetedItemID = info and info.itemID or nil;
-            AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_MOVED, pickedItemID, targetedItemID,
-                pickedItemCategory, targetItemCategory, pickedItemButton, self);
+    local infoType, itemID, itemLink = GetCursorInfo()
+    if (infoType == "merchant") then
+        itemID = GetMerchantItemID(itemID)
+        infoType = "item";
+    end
+    if (infoType == "item") then
+        if (pickedItemButton and itemID ~= pickedItemID) then
+            AddonNS.DragAndDrop.cleanUp()
         end
+
+        AddonNS.printDebug("3")
+        local info = C_Container.GetContainerItemInfo(self:GetBagID(), self:GetID());
+        local targetedItemID = info and info.itemID or nil;
+        AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_MOVED, itemID, targetedItemID,
+            pickedItemCategory, targetItemCategory, pickedItemButton, self);
     elseif pickedItemCategory then -- category frame
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED,
             pickedItemCategory, targetItemCategory);
@@ -83,13 +94,6 @@ function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
     AddonNS.DragAndDrop.cleanUp()
 end
 
-function AddonNS.DragAndDrop.categoryOnMouseUp(self, button)
-    AddonNS.printDebug("categoryOnMouseUp")
-    if button == "LeftButton" then
-        AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
-    end
-end
-
 function AddonNS.DragAndDrop.categoryStartDrag(self)
     AddonNS.DragAndDrop.cleanUp()
     AddonNS.printDebug("categoryStartDrag")
@@ -98,11 +102,11 @@ function AddonNS.DragAndDrop.categoryStartDrag(self)
     AddonNS.printDebug("categoryStartDrag", pickedItemCategory)
 end
 
-function AddonNS.DragAndDrop.cleanUp()
-    AddonNS.printDebug("cleanUp")
-    pickedItemButton = nil;
-    pickedItemID = nil
-    pickedItemCategory = nil;
+function AddonNS.DragAndDrop.categoryOnMouseUp(self, button)
+    AddonNS.printDebug("categoryOnMouseUp")
+    if button == "LeftButton" then
+        AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
+    end
 end
 
 function AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
@@ -110,19 +114,23 @@ function AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
 
     local targetItemCategory = self.ItemCategory;
 
-    AddonNS.printDebug("categoryOnReceiveDrag", pickedItemCategory, targetItemCategory)
+    AddonNS.printDebug("categoryOnReceiveDrag", targetItemCategory)
 
-    if (pickedItemButton) then -- button
-        local infoType, itemID, itemLink = GetCursorInfo()
-        if infoType == "item" and itemID == pickedItemID then
-            AddonNS.CustomCategories:AssignToCategory(self.ItemCategory, itemID)
-            ClearCursor();
-            RunNextFrame(function()
-                container:UpdateItemLayout();
-            end);
+    local infoType, itemID, itemLink = GetCursorInfo()
+    if (infoType == "merchant") then
+        itemID = GetMerchantItemID(itemID)
+        infoType = "item";
+    end
+    if (infoType == "item") then
+        if AddonNS.emptyItemButton then
+            ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
         end
+        AddonNS.CustomCategories:AssignToCategory(self.ItemCategory, itemID)
+        ClearCursor();
+        RunNextFrame(function()
+            container:UpdateItemLayout();
+        end);
     elseif pickedItemCategory and (pickedItemCategory ~= targetItemCategor) then -- category frame
-
         AddonNS.printDebug("sending CATEGORY_MOVED", AddonNS.Events.CATEGORY_MOVED)
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED,
             pickedItemCategory, targetItemCategory);
@@ -180,15 +188,27 @@ end
 
 function AddonNS.DragAndDrop.backgroundOnReceiveDrag(self)
     AddonNS.printDebug("backgroundOnReceiveDrag")
-    local column = GetMouseSectionRelativeToFrame(self)
-    AddonNS.printDebug(column)
-    if (column) then
-        AddonNS.printDebug("categoryOnReceiveDrag", pickedItemCategory)
-
-        if not pickedItemButton and pickedItemCategory then -- category frame
-            AddonNS.printDebug("sending CATEGORY_MOVED_TO_COLUMN", AddonNS.Events.CATEGORY_MOVED)
+    local columnNo = GetMouseSectionRelativeToFrame(self)
+    AddonNS.printDebug(columnNo)
+    if (columnNo) then
+        local infoType, itemID, itemLink = GetCursorInfo()
+        if (infoType == "merchant") then
+            itemID = GetMerchantItemID(itemID)
+            infoType = "item";
+        end
+        if (infoType == "item") then
+            if AddonNS.emptyItemButton then
+                ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
+            end
+            AddonNS.CustomCategories:AssignToCategory(AddonNS.Categories:GetLastCategoryInColumn(columnNo), itemID)
+            ClearCursor();
+            RunNextFrame(function()
+                container:UpdateItemLayout();
+            end);
+        elseif pickedItemCategory then -- category frame
+            AddonNS.printDebug("sending CATEGORY_MOVED_TO_COLUMN", AddonNS.Events.CATEGORY_MOVED_TO_COLUMN)
             AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED_TO_COLUMN,
-                pickedItemCategory, column);
+                pickedItemCategory, columnNo);
             -- ClearCursor();
             RunNextFrame(function()
                 container:OnTokenWatchChanged();
@@ -206,17 +226,15 @@ function AddonNS.DragAndDrop.customCategoryGUIOnMouseUp(targetItemCategoryName, 
 end
 
 function AddonNS.DragAndDrop.customCategoryGUIOnReceiveDrag(targetItemCategoryName)
-   
-
     AddonNS.printDebug("customCategoryGUIOnReceiveDrag", pickedItemCategory, targetItemCategoryName)
 
     if (pickedItemButton) then -- button
         local infoType, itemID, itemLink = GetCursorInfo()
         if infoType == "item" and itemID == pickedItemID then
             local cat = AddonNS.Categories:GetCategoryByName(targetItemCategoryName);
-            if cat then 
-            AddonNS.CustomCategories:AssignToCategory(cat, itemID)
-            else 
+            if cat then
+                AddonNS.CustomCategories:AssignToCategory(cat, itemID)
+            else
                 AddonNS.CustomCategories:AssignToCategoryByName(targetItemCategoryName, itemID)
             end
             ClearCursor();

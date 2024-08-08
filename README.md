@@ -25,14 +25,19 @@ This allows for any new features supported by default game bags to be available 
 
 ## Things to consider to change:
 
-* [solved I think] click on an item in the bag requires you to drop it onto a different item in anothe rcategory. You cannot click another category which is miasligned with the ability to drag onto another category. Same when draggoning on the categories in edit mode.
-* when dropping an item on bg it should it be assigned to latest category in the column.
-* when too many items are to expand the height to far, the addon should try to automatically split fiven categories into separate columns.
+* [solved] click on an item in the bag requires you to drop it onto a different item in anothe rcategory. You cannot click another category which is miasligned with the ability to drag onto another category. Same when draggoning on the categories in edit mode.
+* [solved] when too many items are to expand the height to far, the addon should try to automatically split given categories into separate columns.
+* [solved] when dropping an item on bg [outside of category] it should it be assigned to latest category in the column.
+* [solved] when buying from merchant you should be able to assign to a category automatically when dropping on an item 
+* [solved] when buying from merchant you should be able to drop an item onto a free space to buy the item as long as there is an itembutton available
+* [solved] When moving items from vendor or bank by mouse consider allowing for direct association with a category. Currently only dropping on items would work, but in the case of bank this results in items switching places. The only way is to right click which is doable, but then association with category has to be done afterwards resulting in two clicks which would be good to avoid.
+* [solved] when moving an item from bank you should be able to assing to a category
 * the config should be stored in account wide config so maybe at some point we could introduce profiles.
+* reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
+* show somewhere how many empty spaces are left
 * display empty space if available to show how many items we can still add as well as allow for stack splits.
-* When moving items from vendor or bank by mouse consider allowing for direct association with a category. Currently only dropping on items would work, but in the case of bank this results in items switching places. The only way is to right click which is doable, but then association with category has to be done afterwards resulting in two clicks which would be good to avoid.
 * there is a lot of bad code, broken domains. Especially in the place of:
   * custom categories and categories,
   * which code [class/domain] should trigger visual updates as it is a random to an extent at this point
 * a lot of todo's
-* add support for other bags. This is not a priority. I am doing this for fun and I feel current implementation of handling of the main bag kinda of works, I want to be adjusting it to a point I will be happy with it's behaviour. when I will extend the support onto other bags.
+* add support for other bags. This is not a priority. I am doing this for fun and I feel current implementation of handling of the main bag kinda of works, I want to be adjusting it to a point I will be happy with it's behaviour. when I will extend the support onto other bags. But clean up the code toward proper mixin that maybe could be put on top of other frames if that is even possible.

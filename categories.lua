@@ -9,6 +9,7 @@ function AddonNS.Categories:OnInitialize()
 end
 
 AddonNS.Events:OnInitialize(AddonNS.Categories.OnInitialize)
+local categoryAssignments;
 
 local UNASSIGNED_CATEGORY = { name = nil, protected = false };
 local categorizers = OrderedMap:new()
@@ -53,8 +54,13 @@ local function getBagSize(arrangedItems)
     end
     return sum;
 end
+
+function AddonNS.Categories:GetLastCategoryInColumn(columnNo)
+    return categoryAssignments[columnNo][#categoryAssignments[columnNo]].category;
+end
+
 function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
-    local categoryAssignments = { {}, {}, {} };
+    categoryAssignments = { {}, {}, {} };
     local columnSum = { 0, 0, 0 };
     local knownCategories = {};
     local MAX_ITEMS_PER_COLUMN = AddonNS.MAX_ITEMS_PER_COLUMN
@@ -64,27 +70,28 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
         AddonNS.printDebug(category)
         AddonNS.printDebug(category.name)
         AddonNS.printDebug(#items)
+        AddonNS.ItemsOrder:Sort(items);
         while #items > 0 do
-            AddonNS.printDebug("rozklada",#items)
+            AddonNS.printDebug("a", #items)
             local itemsBatch = {}
             if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then
                 local itemsToFit = MAX_ITEMS_PER_COLUMN - columnSum[column]
-                AddonNS.printDebug("to fit;",itemsToFit)
+                AddonNS.printDebug("to fit;", itemsToFit)
                 itemsBatch = items;
                 items = {};
                 local o = 1;
                 for i = itemsToFit + 1, #itemsBatch do
                     items[o] = itemsBatch[i];
                     itemsBatch[i] = nil;
-                    o = o +1;
+                    o = o + 1;
                 end
-                AddonNS.printDebug("o;",o);
+                AddonNS.printDebug("o;", o);
             else
                 itemsBatch = items;
                 items = {};
             end
             columnSum[column] = columnSum[column] + #itemsBatch
-            AddonNS.printDebug("dolozy",#itemsBatch, column)
+            AddonNS.printDebug("c", #itemsBatch, column)
             if (#itemsBatch > 0) then
                 table.insert(categoryAssignments[column], { category = category, items = itemsBatch });
                 firstColumn = firstColumn or column
@@ -121,38 +128,12 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
             while (columnSum[column] > predictedItemsPerColumn and column <= AddonNS.NUM_COLUMNS) do
                 column = column + 1;
             end
-            
+
             local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category].items, column);
             table.insert(categoriesColumnAssignments[firstAssignedColumn], getCategorySafeNameForStorage(category));
         end
     end
-    -- for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
-    --     for _, categoryName in ipairs(categoriesNames) do
-    --         local tempCat = AddonNS.Categories:GetCategoryByName(categoryName)
-    --         if (tempCat and arrangedItems[tempCat]) then
-    --             -- addCategoryToColumn(categoryAssignments[], tempCat);
-    --             table.insert(categoryAssignments[colIndex], tempCat);
-    --             knownCategories[tempCat] = true;
-    --             columnSum[colIndex] = columnSum[colIndex] + arrangedItems[tempCat].itemsCount;
-    --         end
-    --     end
-    -- end
 
-
-    -- local predictedItemsPerColumn = getBagSize(arrangedItems) / AddonNS.NUM_COLUMNS;
-    -- local column = 1;
-    -- AddonNS.printDebug(arrangedItems)
-    -- for category, obj in pairs(arrangedItems) do
-    --     if not knownCategories[category] then
-    --         while (columnSum[column] > predictedItemsPerColumn and column <= AddonNS.NUM_COLUMNS) do
-    --             column = column + 1;
-    --         end
-    --         table.insert(categoryAssignments[column], category);
-    --         table.insert(categoriesColumnAssignments[column], getCategorySafeNameForStorage(category));
-
-    --         columnSum[column] = columnSum[column] + obj.itemsCount;
-    --     end
-    -- end
     return categoryAssignments;
 end
 
