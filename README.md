@@ -36,10 +36,12 @@ This allows for any new features supported by default game bags to be available 
 * [solved] as we have to use placedholder anyway rewrite the Junk how it is handled, and just add a category with one placeholder item to the arrange list and remove all the other code as it is not needed lol.... :|
 * [solved] using placeholder items which allowed for better categories placements from the begining
 * [solved] initial categories assignment is done by alphabetic order. Useful when we will allow for import of custom categories or external categorizers
+* [solved] the gear categorizer could add icon of the category at the begining? :)
 * the config should be stored in account wide config so maybe at some point we could introduce profiles.
 * reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
 * show somewhere how many empty spaces are left
 * display empty space if available to show how many items we can still add as well as allow for stack splits.
+* add the effect when dragging to indicate that a given cateogry is protected so you cannot assign to it - ie red background, shield pickture and some small text? And when howevering over a category to which you can assign indicate with text that it will be assigned to this one?
 * there is a lot of bad code, broken domains. Especially in the place of:
   * custom categories and categories,
   * which code [class/domain] should trigger visual updates as it is a random to an extent at this point

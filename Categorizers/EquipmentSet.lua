@@ -19,11 +19,12 @@ local function cleanItemCategory(bag, slot)
     itemSets[bag] = itemSets[bag] or {};
     itemSets[bag][slot] = nil;
 end
+local iconSize = 16;
 local function refreshEquipmentSets()
     itemSets = {};
     local equipmentSetIDs = C_EquipmentSet.GetEquipmentSetIDs()
     for _, equipmentSetID in pairs(equipmentSetIDs) do
-        local name = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetID)
+        local name, iconFileID = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetID)
 
         local locations = C_EquipmentSet.GetItemLocations(equipmentSetID)
 
@@ -32,7 +33,8 @@ local function refreshEquipmentSets()
             if (location > 1 or location < -1) then
                 local player, bank, bags, voidStorage, slot, bag = EquipmentManager_UnpackLocation(location);
                 if bag then
-                    setItemSetCategory(bag, slot, "|CFFFF2459" .. name)
+                    local iconString = "|T" .. iconFileID .. ":16:16:0:2:64:64:4:60:4:60|t ";
+                    setItemSetCategory(bag, slot, iconString .. "|CFFFF2459" .. name)
                 end
             end
         end
