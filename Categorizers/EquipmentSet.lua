@@ -11,6 +11,12 @@ function EquipmentSet:Categorize(itemID, itemButton)
     return itemSets[itemButton:GetBagID()] and itemSets[itemButton:GetBagID()][itemButton:GetID()] or nil;
 end
 
+local function setItemCategoryIfEmpty(bag, slot, category)
+    itemSets[bag] = itemSets[bag] or {};
+    if (not itemSets[bag][slot]) then
+        itemSets[bag][slot] = category;
+    end
+end
 local function setItemSetCategory(bag, slot, category)
     itemSets[bag] = itemSets[bag] or {};
     itemSets[bag][slot] = category;
@@ -34,7 +40,7 @@ local function refreshEquipmentSets()
                 local player, bank, bags, voidStorage, slot, bag = EquipmentManager_UnpackLocation(location);
                 if bag then
                     local iconString = "|T" .. iconFileID .. ":16:16:0:2:64:64:4:60:4:60|t ";
-                    setItemSetCategory(bag, slot, iconString .. "|CFFFF2459" .. name)
+                    setItemCategoryIfEmpty(bag, slot, iconString .. "|CFFFF2459" .. name)
                 end
             end
         end
