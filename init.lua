@@ -169,7 +169,7 @@ local function newIterator(container, index)
                     currentRowY = currentRowY + CATEGORY_HEIGHT + COLUMN_SPACING;
                 end
                 local expandCategoryToRightColumnBoundary = (#currentRow + categoryItemsCount < ITEMS_PER_ROW and
-                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and  #categoriesObj[i + 1] or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
+                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and  #categoriesObj[i + 1].items or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
                     (ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
                 table.insert(categoryPositions,
                     {
