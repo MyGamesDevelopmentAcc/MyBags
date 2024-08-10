@@ -13,7 +13,12 @@ AddonNS.db = {};
 AddonNS.init = function(db)
     AddonNS.db = db;
 end
+--@debug@
+LibStub("MyLibrary_DB").asyncLoad("dev_MyBagsDB", AddonNS.init);
+--@end-debug@
+--[===[@non-debug@
 LibStub("MyLibrary_DB").asyncLoad("MyBagsDB", AddonNS.init);
+--@end-non-debug@]===]
 function AddonNS.printDebug(...)
     --  print(...)
 end

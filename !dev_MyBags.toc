@@ -1,13 +1,14 @@
 ## Interface: 110000
 #@non-debug@
 # ## Title: |CFFFF2459My|r Bags
+# ## SavedVariablesPerCharacter: MyBagsDB
 #@end-non-debug@
 #@debug@
 ## Title: |CFFFF2459My|r Bags  |CFFFF0000[DEVELOPMENT VERSION]
+## SavedVariablesPerCharacter: dev_MyBagsDB
 #@end-debug@
 ## DefaultState: Enabled
 ## Version: @project-version@
-## SavedVariablesPerCharacter: MyBagsDB
 ### AddonCompartmentFunc: MyTestsAddon_MinimapOnClick
 #@debug@
 ## Dependencies:  MyLibrary_GUI, MyLibrary_Common
