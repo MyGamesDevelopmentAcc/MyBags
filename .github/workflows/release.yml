@@ -26,6 +26,15 @@ jobs:
       - name: Rename .toc file
         run: mv '!dev_MyBags.toc' MyBags.toc
 
+      - name: Check renamed .toc file
+        run: |
+          if [ -f "MyBags.toc" ]; then
+            echo "MyBags.toc exists and is correctly named."
+          else
+            echo "MyBags.toc does not exist or renaming failed."
+            exit 1
+          fi
+
       # once cloned, we just run the GitHub Action for the packager project
       - name: Package and release
         uses: BigWigsMods/packager@v2
