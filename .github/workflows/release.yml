@@ -26,14 +26,8 @@ jobs:
       - name: Rename .toc file
         run: mv '!dev_MyBags.toc' MyBags.toc
 
-      - name: Check renamed .toc file
-        run: |
-          if [ -f "MyBags.toc" ]; then
-            echo "MyBags.toc exists and is correctly named."
-          else
-            echo "MyBags.toc does not exist or renaming failed."
-            exit 1
-          fi
+      - name: Add .toc file to Git #workaround for the package to accept this file and not ignore it
+        run: git add MyBags.toc
 
       # once cloned, we just run the GitHub Action for the packager project
       - name: Package and release
