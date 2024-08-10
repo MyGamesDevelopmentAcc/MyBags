@@ -1,0 +1,9 @@
+package-as: MyBags
+
+externals:
+  Libs/MyLibrary_GUI:
+    url: https://github.com/MyGamesDevelopmentAcc/MyLibrary_GUI.git
+    tag: latest
+  Libs/MyLibrary_Common:
+    url: https://github.com/MyGamesDevelopmentAcc/MyLibrary_Common.git
+    tag: latest

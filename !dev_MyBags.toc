@@ -1,10 +1,22 @@
 ## Interface: 110000
-## Title: |CFFFF2459My|r |CFF112459Bags
+#@non-debug@
+# ## Title: |CFFFF2459My|r Bags
+#@end-non-debug@
+#@debug@
+## Title: |CFFFF2459My|r Bags  |CFFFF0000[DEVELOPMENT VERSION]
+#@end-debug@
 ## DefaultState: Enabled
 ## Version: @project-version@
 ## SavedVariablesPerCharacter: MyBagsDB
 ### AddonCompartmentFunc: MyTestsAddon_MinimapOnClick
+#@debug@
 ## Dependencies:  MyLibrary_GUI, MyLibrary_Common
+#@end-debug@
+#@non-debug@
+# ## OptionalDeps:  MyLibrary_GUI, MyLibrary_Common
+# Libs/MyLibrary_Common/common.xml
+# Libs/MyLibrary_GUI/gui.xml
+#@end-non-debug@
 
 utils/orderedMap.lua
 init.lua
