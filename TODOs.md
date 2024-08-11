@@ -20,6 +20,8 @@
 * show somewhere how many empty spaces are left
 * display empty space if available to show how many items we can still add as well as allow for stack splits.
 * add the effect when dragging to indicate that a given cateogry is protected so you cannot assign to it - ie red background, shield pickture and some small text? And when howevering over a category to which you can assign indicate with text that it will be assigned to this one?
+* create a categorizer that is based on a query language. Categorizer would create protected categories (is this actually needed?).
+* add sound when picking a category - maybe use the same sound that is used picking up items for simplicity
 * there is a lot of bad code, broken domains. Especially in the place of:
   * custom categories and categories,
   * which code [class/domain] should trigger visual updates as it is a random to an extent at this point
