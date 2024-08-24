@@ -1,6 +1,6 @@
 ## Interface: 110002
 #@non-debug@
-# ## Title: ||cffff2459My|r Bags
+# ## Title: |cffff2459My|r Bags
 # ## SavedVariablesPerCharacter: MyBagsDB
 #@end-non-debug@
 #@debug@
