@@ -1,10 +1,10 @@
 ## Interface: 110000
 #@non-debug@
-# ## Title: |CFFFF2459My|r Bags
+# ## Title: ||cffff2459My|r Bags
 # ## SavedVariablesPerCharacter: MyBagsDB
 #@end-non-debug@
 #@debug@
-## Title: |CFFFF2459My|r Bags  |CFFFF0000[DEVELOPMENT VERSION]
+## Title: |cffff2459My|r Bags  |cffff0000[DEVELOPMENT VERSION]
 ## SavedVariablesPerCharacter: dev_MyBagsDB
 #@end-debug@
 ## DefaultState: Enabled
