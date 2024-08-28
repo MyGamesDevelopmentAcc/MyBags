@@ -26,8 +26,9 @@ end
 
 local ITEMS_PER_ROW = 4 -- Maximum items per row
 AddonNS.NUM_COLUMNS = 3 -- Number of columns
-local ITEM_SPACING = 5
-local COLUMN_SPACING = 5
+local ORIGINAL_ITEM_SPACING = 5
+local ITEM_SPACING = ORIGINAL_ITEM_SPACING
+local COLUMN_SPACING = 2
 local CATEGORY_HEIGHT = 20;
 AddonNS.ITEM_SPACING = ITEM_SPACING;
 AddonNS.CATEGORY_HEIGHT = CATEGORY_HEIGHT
@@ -250,7 +251,7 @@ container.CalculateExtraHeight = extend(container.CalculateExtraHeight,
 
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
-        return f(...) + 2 * COLUMN_SPACING;
+        return f(...) + 2 * COLUMN_SPACING - container:GetColumns()*(ORIGINAL_ITEM_SPACING-ITEM_SPACING);
     end
 )
 
