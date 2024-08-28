@@ -249,6 +249,10 @@ container.CalculateExtraHeight = extend(container.CalculateExtraHeight,
     end
 )
 
+container.SetScale = extend(container.SetScale, function(f, ...)
+    return f(container, 0.75);
+end);
+
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
         return f(...) + 2 * COLUMN_SPACING - container:GetColumns()*(ORIGINAL_ITEM_SPACING-ITEM_SPACING);
