@@ -12,6 +12,10 @@
 * [solved] using placeholder items which allowed for better categories placements from the begining
 * [solved] initial categories assignment is done by alphabetic order. Useful when we will allow for import of custom categories or external categorizers
 * [solved] the gear categorizer could add icon of the category at the begining? :)
+* breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
+* unassigned to junk was behaving weirdly
+* taking of an item to just drop it onto a bag behaved weirdly. I think in such situation it should by default add it to unassigned maybe? Maybe if unassigned was always visible it owouldnt be an issue though
+* the categorizers might need a rework. With custom query like option, assignments by mouse, and ability to show always - this is needed, and needed to be easily changed. Also prioritisation of them, if we are talking about query like language as it will be based on the first one to catch with the query will get the item.
 * unassigned group should always be visible
 * maybe if unassigned group is visible it should be added a bit more info to the tooltip what will happen if you move item over that group - that it will get unassigned from a custom group and can be picked by other categorizers
 * make it so that when a category is selected, the custom category becomes always visible during that time (?). Alternative is also to allow for multiselect and those selected are always shown, even after categories menu close.

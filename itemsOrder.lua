@@ -60,7 +60,6 @@ function AddonNS.ItemsOrder:Sort(itemButtonsList)
 
     local last_index = 0
     for i = #itemButtonsList, 1, -1 do
-        AddonNS.printDebug("scanning", i, itemToItemIDMap[itemButtonsList[i]]);
         local id = itemToItemIDMap[itemButtonsList[i]]
         if order_map[id] then
             last_index = order_map[id]
@@ -73,9 +72,8 @@ function AddonNS.ItemsOrder:Sort(itemButtonsList)
     end
 
     for _, item in ipairs(itemButtonsList) do
-        AddonNS.printDebug(item, itemToItemIDMap[item], order_map[itemToItemIDMap[item]]);
+        -- AddonNS.printDebug(item, itemToItemIDMap[item], order_map[itemToItemIDMap[item]]);
         if not order_map[itemToItemIDMap[item]] then
-            --AddonNS.printDebug("adding");
             table.insert(items_current_order, last_index + 1, itemToItemIDMap[item])
             last_index = last_index + 1
         end
@@ -84,12 +82,12 @@ end
 
 local function ItemsMoved(previousItemID, pickedItemID, changedCategory)
     if not previousItemID then return end;
-    AddonNS.printDebug(previousItemID, pickedItemID, changedCategory)
+    AddonNS.printDebug("ItemsMoved", previousItemID, pickedItemID, changedCategory)
     recreateAnOrderMapIfNeeded();
     local prevNo = order_map[previousItemID];
     local pickedNo = order_map[pickedItemID];
 
-    AddonNS.printDebug(prevNo, pickedNo)
+    AddonNS.printDebug("ItemsMoved2", prevNo, pickedNo)
     if not prevNo or not pickedNo then
         AddonNS.printDebug("ERROR, moving items that are not ordered. Contact dev how did this happen.")
     end

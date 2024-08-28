@@ -86,10 +86,8 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     local MAX_ITEMS_PER_COLUMN = AddonNS.MAX_ITEMS_PER_COLUMN
     -- Helper function to add category to a column, splitting if necessary
     local function addCategoryToColumn(category, items, column)
+        -- AddonNS.printDebug("addCategoryToColumn", category, category.name,#items)
         local firstColumn = nil;
-        AddonNS.printDebug(category)
-        AddonNS.printDebug(category.name)
-        AddonNS.printDebug(#items)
         AddonNS.ItemsOrder:Sort(items);
         if (#items == 0) then
             firstColumn = column;
@@ -97,11 +95,9 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
             -- categoryAssignments[column], { category = category, items = itemsBatch })
         else
             while #items > 0 do
-                AddonNS.printDebug("a", #items)
                 local itemsBatch = {}
                 if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then
                     local itemsToFit = MAX_ITEMS_PER_COLUMN - columnSum[column]
-                    AddonNS.printDebug("to fit;", itemsToFit)
                     itemsBatch = items;
                     items = {};
                     local o = 1;
@@ -110,13 +106,11 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
                         itemsBatch[i] = nil;
                         o = o + 1;
                     end
-                    AddonNS.printDebug("o;", o);
                 else
                     itemsBatch = items;
                     items = {};
                 end
                 columnSum[column] = columnSum[column] + #itemsBatch
-                AddonNS.printDebug("c", #itemsBatch, column)
                 if (#itemsBatch > 0) then
                     table.insert(categoryAssignments[column], { category = category, items = itemsBatch });
                     firstColumn = firstColumn or column
@@ -148,7 +142,6 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
 
     local predictedItemsPerColumn = getBagSize(arrangedItems) / AddonNS.NUM_COLUMNS * 1.1; -- 1.1 modifier to make sure initial columns get more items
     local column = 1;
-    AddonNS.printDebug(arrangedItems)
 
     local categoriesToAssign = {};
     for category, items in pairs(arrangedItems) do
@@ -177,37 +170,32 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
 end
 
 local function categoryMoved(eventName, pickedCategory, targetCategory)
+    AddonNS.printDebug(eventName)
     local pickedCategoryName = getCategorySafeNameForStorage(pickedCategory);
     local targetCategoryName = getCategorySafeNameForStorage(targetCategory);
     if (pickedCategoryName == targetCategoryName) then
         return
     end
-    AddonNS.printDebug("received category mved event", pickedCategoryName, targetCategory.name)
+    AddonNS.printDebug("received categoryMoved event", pickedCategoryName, targetCategory.name)
     local pickedCategoryPosition = {}
     local targetCategoryPostion = {}
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         local i = 1
         while i <= #categoriesNames do
-            AddonNS.printDebug(" ", categoriesNames[i]);
             if categoriesNames[i] == pickedCategoryName then
                 pickedCategoryPosition = { col = colIndex, row = i }
-                AddonNS.printDebug("removing", i, categoriesNames[i])
                 table.remove(categoriesNames, i)
-                AddonNS.printDebug("after", i, categoriesNames[i])
                 if categoriesNames[i] == targetCategoryName then
                     targetCategoryPostion = { col = colIndex, row = i }
                 end
             else
                 if categoriesNames[i] == targetCategoryName then
-                    AddonNS.printDebug("found target", i, categoriesNames[i])
                     targetCategoryPostion = { col = colIndex, row = i }
                 end
                 i = i + 1
             end
         end
     end
-    AddonNS.printDebug(pickedCategoryPosition.col, targetCategoryPostion.col, pickedCategoryPosition.row,
-        targetCategoryPostion.row)
     local placeAbove =
         (
             pickedCategoryPosition.col ~= targetCategoryPostion.col or
@@ -219,15 +207,14 @@ end
 
 
 local function categoryMovedToColumn(eventName, pickedCategory, column)
+    AddonNS.printDebug(eventName)
     local pickedCategoryName = getCategorySafeNameForStorage(pickedCategory);
-    AddonNS.printDebug("received category mved event to clumn", pickedCategoryName, column)
+    AddonNS.printDebug("received categoryMovedToColumn", pickedCategoryName, column)
 
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         local i = 1
         while i <= #categoriesNames do
-            AddonNS.printDebug(" ", categoriesNames[i]);
             if categoriesNames[i] == pickedCategoryName then
-                AddonNS.printDebug("moving", colIndex, column)
                 table.remove(categoriesNames, i)
                 table.insert(categoriesColumnAssignments[column], pickedCategoryName)
                 return;
@@ -238,10 +225,11 @@ local function categoryMovedToColumn(eventName, pickedCategory, column)
 end
 
 local function categoryRenamed(eventName, fromCategoryName, toCategoryName)
+    AddonNS.printDebug(eventName)
     if (fromCategoryName == toCategoryName) then
         return
     end
-    AddonNS.printDebug("received category mved event", fromCategoryName, toCategoryName)
+    AddonNS.printDebug("received categoryRenamed event", fromCategoryName, toCategoryName)
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         local i = 1
         while i <= #categoriesNames do
@@ -263,6 +251,7 @@ local function categoryRenamed(eventName, fromCategoryName, toCategoryName)
 end
 
 local function categoryDeleted(eventName, categoryName)
+     AddonNS.printDebug(eventName)
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         local i = 1
         while i <= #categoriesNames do

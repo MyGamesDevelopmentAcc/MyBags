@@ -15,6 +15,7 @@ AddonNS.init = function(db)
 end
 --@debug@
 LibStub("MyLibrary_DB").asyncLoad("dev_MyBagsDB", AddonNS.init);
+GLOBAL_MyBags = AddonNS;
 --@end-debug@
 --[===[@non-debug@
 LibStub("MyLibrary_DB").asyncLoad("MyBagsDB", AddonNS.init);
@@ -31,7 +32,7 @@ local CATEGORY_HEIGHT = 20;
 AddonNS.ITEM_SPACING = ITEM_SPACING;
 AddonNS.CATEGORY_HEIGHT = CATEGORY_HEIGHT
 AddonNS.COLUMN_SPACING = COLUMN_SPACING;
-AddonNS.MAX_ROWS = 20
+AddonNS.MAX_ROWS = 18
 AddonNS.MAX_ITEMS_PER_COLUMN = AddonNS.MAX_ROWS * ITEMS_PER_ROW;
 --
 AddonNS.itemButtonPlaceholder = {}
@@ -70,12 +71,15 @@ function AddonNS.Events:BAG_UPDATE(event, bagID)
 
     if (UpdateItemLayoutCalledAtLeastOnce) then
         local newFreeBagSlots = CalculateTotalNumberOfFreeBagSlots()
+        
+        AddonNS.printDebug("FREE BAGS", newFreeBagSlots, freeBagSlots)
         if newFreeBagSlots <= freeBagSlots then
-            freeBagSlots = newFreeBagSlots;
             RunNextFrame(function()
+                AddonNS.printDebug("FIRED")
                 container:UpdateItemLayout();
             end);
         end
+        freeBagSlots = newFreeBagSlots;
     end
 end
 
@@ -96,7 +100,7 @@ local height = 0;
 AddonNS.emptyItemButton = nil
 local function newIterator(container, index)
     local index, itemButton = it(container, index);
-    if (index == 1) then AddonNS.emptyItemButton = nil end  -- reset itemButom
+    if (index == 1) then AddonNS.emptyItemButton = nil end -- reset itemButom
     if (itemButton) then
         -- [[ checking hooks]]
         if (not itemButton.myBagAddonHooked) then
@@ -126,7 +130,7 @@ local function newIterator(container, index)
         if (info) then
             itemButton.ItemCategory = AddonNS.Categories:Categorize(info.itemID, itemButton);
             arrangedItems[itemButton.ItemCategory] = arrangedItems[itemButton.ItemCategory] or
-                { }
+                {}
 
             table.insert(arrangedItems[itemButton.ItemCategory], itemButton);
         else
@@ -174,7 +178,7 @@ local function newIterator(container, index)
                     currentRowY = currentRowY + CATEGORY_HEIGHT + COLUMN_SPACING;
                 end
                 local expandCategoryToRightColumnBoundary = (#currentRow + categoryItemsCount < ITEMS_PER_ROW and
-                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and  #categoriesObj[i + 1].items or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
+                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and #categoriesObj[i + 1].items or ITEMS_PER_ROW) > ITEMS_PER_ROW) and
                     (ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
                 table.insert(categoryPositions,
                     {
@@ -281,3 +285,14 @@ container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
 
         return anchor;
     end);
+--@debug@
+function GLOBAL_MyBagsExtra()
+    return { arrangedItems, positionsInBags,
+        categoryPositions }
+end
+
+function GLOBAL_MyBagsEnableDebug()
+    AddonNS.printDebug = function(...) print(...) end
+end
+-- AddonNS.printDebug = function(...) print(...) end
+--@end-debug@

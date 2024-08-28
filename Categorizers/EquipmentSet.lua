@@ -35,7 +35,6 @@ local function refreshEquipmentSets()
         local locations = C_EquipmentSet.GetItemLocations(equipmentSetID)
 
         for inventorySlotID, location in ipairs(locations) do
-            AddonNS.printDebug(inventorySlotID, location);
             if (location > 1 or location < -1) then
                 local player, bank, bags, voidStorage, slot, bag = EquipmentManager_UnpackLocation(location);
                 if bag then

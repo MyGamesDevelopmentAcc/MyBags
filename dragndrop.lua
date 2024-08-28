@@ -64,11 +64,9 @@ end
 
 function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
     AddonNS.printDebug("itemOnReceiveDrag")
-    if not self.ItemCategory then AddonNS.printDebug("no item category error") end -- todo: this check seem redudant?
 
     local targetItemCategory = self.ItemCategory;
 
-    AddonNS.printDebug("1")
     local infoType, itemID, itemLink = GetCursorInfo()
     if (infoType == "merchant") then
         itemID = GetMerchantItemID(itemID)
@@ -78,8 +76,6 @@ function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
         if (pickedItemButton and itemID ~= pickedItemID) then
             AddonNS.DragAndDrop.cleanUp()
         end
-
-        AddonNS.printDebug("3")
         local info = C_Container.GetContainerItemInfo(self:GetBagID(), self:GetID());
         local targetedItemID = info and info.itemID or nil;
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_MOVED, itemID, targetedItemID,
@@ -189,7 +185,6 @@ end
 function AddonNS.DragAndDrop.backgroundOnReceiveDrag(self)
     AddonNS.printDebug("backgroundOnReceiveDrag")
     local columnNo = GetMouseSectionRelativeToFrame(self)
-    AddonNS.printDebug(columnNo)
     if (columnNo) then
         local infoType, itemID, itemLink = GetCursorInfo()
         if (infoType == "merchant") then

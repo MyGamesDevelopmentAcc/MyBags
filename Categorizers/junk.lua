@@ -10,4 +10,4 @@ end
 function JunkCategorizer:Categorize(itemID, itemButton)
     local itemInfo = C_Container.GetContainerItemInfo(itemButton:GetBagID(), itemButton:GetID())
     return itemInfo.quality == Enum.ItemQuality.Poor and name;
-end
+end 
