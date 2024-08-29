@@ -14,21 +14,21 @@ Main features provided by the addon
 
 ### Easy category adjustments
 
-![Category adjustments](.previews/cat_move.gif)
+![Category adjustments](https://raw.githubusercontent.com/MyGamesDevelopmentAcc/MyBags/main/.previews/cat_move.gif)
 
 ### Easy item category change
 
 Moving items between categories easily reassgins to a new category. Please note it is intentionally restricted to assign an item to a equipment set category.
 
-![item category change](.previews/items_movement.gif)
+![item category change](https://raw.githubusercontent.com/MyGamesDevelopmentAcc/MyBags/main/.previews/items_movement.gif)
 
 ### Easy category creation
 
-![Category creation](.previews/cat_creation.gif)
+![Category creation](https://raw.githubusercontent.com/MyGamesDevelopmentAcc/MyBags/main/.previews/cat_creation.gif)
 
 ### Built in always visible categories
 
-![Category always visible](.previews/cat_always_visible.gif)
+![Category always visible](https://raw.githubusercontent.com/MyGamesDevelopmentAcc/MyBags/main/.previews/cat_always_visible.gif)
 
 Some other worth mentioning:
 
@@ -56,4 +56,4 @@ The addon will display items exactly as they appear in the default bag slots. Th
 
 ## TODOs, Ideas and other things considering for this addon
 
-See "[TODOs, Ideas and other things considering for this addon](./TODOs.md)" to learn more.
+See "[TODOs, Ideas and other things considering for this addon](https://github.com/MyGamesDevelopmentAcc/MyBags/blob/main/TODOs.md)" to learn more.
