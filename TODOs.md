@@ -12,6 +12,12 @@
 * [solved] using placeholder items which allowed for better categories placements from the begining
 * [solved] initial categories assignment is done by alphabetic order. Useful when we will allow for import of custom categories or external categorizers
 * [solved] the gear categorizer could add icon of the category at the begining? :)
+* clearup the todos as I think there are duplicates and also these have become unordered due to that
+* if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id).
+    * categorize by QL if protected
+    * categorize by id assignment
+    * categorize by QL
+    * unassigned
 * breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * unassigned to junk was behaving weirdly
 * taking of an item to just drop it onto a bag behaved weirdly. I think in such situation it should by default add it to unassigned maybe? Maybe if unassigned was always visible it owouldnt be an issue though
