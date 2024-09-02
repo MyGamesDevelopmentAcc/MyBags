@@ -139,7 +139,7 @@ local function newIterator(container, index)
                 {}
 
             table.insert(arrangedItems[itemButton.ItemCategory], itemButton);
-        else
+        elseif itemButton:GetBagID() ~= Enum.BagIndex.ReagentBag then
             AddonNS.emptyItemButton = itemButton;
         end
     else --[[ iterator finished so we can now tackle the list and calcualte the positions of items, as we now have all the items]]
@@ -307,3 +307,28 @@ end
 
 -- AddonNS.printDebug = function(...) print(...) end
 --@end-debug@
+
+
+
+
+
+container.UpdateItemSlots = extend(container.UpdateItemSlots,
+    function(f, ...)
+        AddonNS.printDebug("UpdateItemSlots")
+        f(...);
+
+        local bagSize = ContainerFrame_GetContainerNumSlots(Enum.BagIndex.ReagentBag);
+        for i = 1, bagSize do
+            local itemButton = container:AcquireNewItemButton();
+            local slotID = bagSize - i + 1;
+            itemButton:Initialize(Enum.BagIndex.ReagentBag, slotID);
+        end
+    end);
+
+-- need to overwrite this as it is used during enumeration of items in the bags so otherwise it would not incorporate reagentsContainer
+function container:SetBagSize()
+    self.size = 0;
+    for i = 0, Enum.BagIndex.ReagentBag, 1 do
+        self.size = container.size + ContainerFrame_GetContainerNumSlots(i);
+    end
+end

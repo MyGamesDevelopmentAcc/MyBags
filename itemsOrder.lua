@@ -89,7 +89,7 @@ local function ItemsMoved(previousItemID, pickedItemID, changedCategory)
 
     AddonNS.printDebug("ItemsMoved2", prevNo, pickedNo)
     if not prevNo or not pickedNo then
-        AddonNS.printDebug("ERROR, moving items that are not ordered. Contact dev how did this happen.")
+        print("ERROR, moving items that are not ordered. Contact dev how did this happen.")
     end
 
     if changedCategory then

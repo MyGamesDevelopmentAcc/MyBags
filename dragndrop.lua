@@ -118,7 +118,10 @@ function AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
         infoType = "item";
     end
     if (infoType == "item") then
-        if AddonNS.emptyItemButton then
+        if (pickedItemButton and itemID ~= pickedItemID) then
+            AddonNS.DragAndDrop.cleanUp()
+        end
+        if not pickedItemButton and AddonNS.emptyItemButton then -- why is this here, this causes problems now, lol.... - it should not be from reagents bag. and it should only click, when the item is not taken from the bag
             ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
         end
         AddonNS.CustomCategories:AssignToCategory(self.ItemCategory, itemID)
@@ -192,7 +195,10 @@ function AddonNS.DragAndDrop.backgroundOnReceiveDrag(self)
             infoType = "item";
         end
         if (infoType == "item") then
-            if AddonNS.emptyItemButton then
+            if (pickedItemButton and itemID ~= pickedItemID) then
+                AddonNS.DragAndDrop.cleanUp()
+            end
+            if not pickedItemButton and AddonNS.emptyItemButton then
                 ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
             end
             AddonNS.CustomCategories:AssignToCategory(AddonNS.Categories:GetLastCategoryInColumn(columnNo), itemID)
