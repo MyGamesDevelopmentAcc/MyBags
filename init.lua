@@ -21,7 +21,7 @@ GLOBAL_MyBags = AddonNS;
 LibStub("MyLibrary_DB").asyncLoad("MyBagsDB", AddonNS.init);
 --@end-non-debug@]===]
 function AddonNS.printDebug(...)
-    --  print(...)
+    -- print(...)
 end
 
 local ITEMS_PER_ROW = 4 -- Maximum items per row
@@ -67,19 +67,24 @@ end
 local container = ContainerFrameCombinedBags;
 AddonNS.container = container;
 local freeBagSlots = 10000;
+local lockedUpdates = false;
 function AddonNS.Events:BAG_UPDATE(event, bagID)
-    AddonNS.printDebug("BAG_UPDATE")
+    AddonNS.printDebug("BAG_UPDATE", bagID)
 
     if (UpdateItemLayoutCalledAtLeastOnce) then
         local newFreeBagSlots = CalculateTotalNumberOfFreeBagSlots()
-        
+
         AddonNS.printDebug("FREE BAGS", newFreeBagSlots, freeBagSlots)
-        if newFreeBagSlots <= freeBagSlots then
+        if newFreeBagSlots <= freeBagSlots and not lockedUpdates then
             RunNextFrame(function()
                 AddonNS.printDebug("FIRED")
                 container:UpdateItemLayout();
             end);
         end
+        lockedUpdates = true;
+        RunNextFrame(function()
+            lockedUpdates = false;
+        end);
         freeBagSlots = newFreeBagSlots;
     end
 end
@@ -255,7 +260,7 @@ end);
 
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
-        return f(...) + 2 * COLUMN_SPACING - container:GetColumns()*(ORIGINAL_ITEM_SPACING-ITEM_SPACING);
+        return f(...) + 2 * COLUMN_SPACING - container:GetColumns() * (ORIGINAL_ITEM_SPACING - ITEM_SPACING);
     end
 )
 
@@ -299,5 +304,6 @@ end
 function GLOBAL_MyBagsEnableDebug()
     AddonNS.printDebug = function(...) print(...) end
 end
+
 -- AddonNS.printDebug = function(...) print(...) end
 --@end-debug@

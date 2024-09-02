@@ -12,12 +12,15 @@
 * [solved] using placeholder items which allowed for better categories placements from the begining
 * [solved] initial categories assignment is done by alphabetic order. Useful when we will allow for import of custom categories or external categorizers
 * [solved] the gear categorizer could add icon of the category at the begining? :)
+* [solved] BAG_UPDATE is a bit broken - it was supposed not to refresh the view when items are removed, but fixing one bug caused it to no longer work this way in all cicrumstances. To verify what can we do about it, when actually this event is sent and what info we can get from it.
+* blizzMove addon breakes it seems with this addon - to check whether it breaks only with this addon, or with it disabled as well as it currently does not work properly with other things like talents window so it might just be broken blizzmove.
 * clearup the todos as I think there are duplicates and also these have become unordered due to that
-* if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id).
+* if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id). In the menu there should be an option to "always show given category".
     * categorize by QL if protected
     * categorize by id assignment
     * categorize by QL
     * unassigned
+* add option to force new line on a given category
 * breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * unassigned to junk was behaving weirdly
 * taking of an item to just drop it onto a bag behaved weirdly. I think in such situation it should by default add it to unassigned maybe? Maybe if unassigned was always visible it owouldnt be an issue though
@@ -37,3 +40,4 @@
   * which code [class/domain] should trigger visual updates as it is a random to an extent at this point
 * a lot of todo's
 * add support for other bags. This is not a priority. I am doing this for fun and I feel current implementation of handling of the main bag kinda of works, I want to be adjusting it to a point I will be happy with it's behaviour. when I will extend the support onto other bags. But clean up the code toward proper mixin that maybe could be put on top of other frames if that is even possible.
+* consider actually adding some options - number of columns, items per column, always break category to new line.
