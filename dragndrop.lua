@@ -83,10 +83,11 @@ function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
     elseif pickedItemCategory then -- category frame
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED,
             pickedItemCategory, targetItemCategory);
-        RunNextFrame(function()
-            container:UpdateItemLayout();
-        end);
+        
     end
+    RunNextFrame(function()
+        container:UpdateItemLayout();
+    end);
     AddonNS.DragAndDrop.cleanUp()
 end
 

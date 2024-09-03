@@ -332,3 +332,7 @@ function container:SetBagSize()
         self.size = container.size + ContainerFrame_GetContainerNumSlots(i);
     end
 end
+
+function container:MatchesBagID(id)-- override to include reagent bags
+    return id >= Enum.BagIndex.Backpack and id <= Enum.BagIndex.ReagentBag;
+end
