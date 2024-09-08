@@ -135,7 +135,7 @@ function AddonNS.createGUI()
             renameButton:Enable()
             deleteButton:Enable()
             local query = AddonNS.QueryCategories:GetQuery(list:GetSelected()[1][1])
-            print(list:GetSelected()[1][1], list:GetSelected()[1], query)
+            
             containerFrame.textScrollFrame.EditBox:SetText(query);
         else
             renameButton:Disable()
