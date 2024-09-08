@@ -253,6 +253,7 @@ local function evaluate(query)
     orCnt = orCnt + 1;
     local orFunction = function(itemInfo)
         -- print(space .. "orFunctionsCount", orCntL, #orFunctions)
+            if(#orFunctions==0) then return false; end
 
         for _, v in ipairs(orFunctions) do
             -- print(space .. "<OR>", v)
@@ -281,6 +282,7 @@ local function evaluate(query)
                 -- print(space .. "</AND>", v, val)
                 if not val then return false end
             end
+            if(#localAndFunctions==0) then return false; end
             return true;
         end;
         table.insert(orFunctions, andFunction);
