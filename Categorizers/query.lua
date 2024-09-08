@@ -341,7 +341,15 @@ local function evaluate(query)
         end
 
         if (not tokenString) then
-            tokenString = query:match("(.-) AND ") or query:match("(.-) OR ") or query:match("(.-) NOT ") or
+            local andTokenString =query:match("(.-) AND ")
+            local orTokenString =query:match("(.-) OR ")
+            local notTokenString =query:match("(.-) NOT ")
+            local vanilaTokenString =  query:match("(.*)");
+            tokenString = andTokenString;
+            tokenString = tokenString and orTokenString and #orTokenString < #tokenString and orTokenString or not tokenString and orTokenString or tokenString;
+            tokenString = tokenString and notTokenString and #notTokenString < #tokenString and notTokenString or not tokenString and notTokenString or tokenString;
+            tokenString = tokenString and vanilaTokenString and #vanilaTokenString < #tokenString and vanilaTokenString or not tokenString and vanilaTokenString or tokenString;
+            
             query:match("(.*)");
             if (tokenString) then
                 local func = evaluateLeaf(tokenString)
@@ -473,7 +481,7 @@ function AddonNS.QueryCategories:OnInitialize()
 end
 
 local function test()
-    local query = "itemType !=4 and itemType != 5 and itemType = 3" -- AND (itemType = 'weapon' AND ilvl >= 20)
+    local query = "itemType !=4 or itemType != 5 and itemType = 3" -- AND (itemType = 'weapon' AND ilvl >= 20)
 
     -- local query = " (type = 'weapon' AND level >= 20) OR (name = 'Epic')"
     local prepareed = prepare(query);
