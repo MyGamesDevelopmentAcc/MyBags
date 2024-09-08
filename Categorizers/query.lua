@@ -221,7 +221,7 @@ local alwaysFalse = function() end
 local space = ""
 function evaluateLeaf(leafQuery)
     leafQuery = trim(leafQuery);
-    print("evalLeaf:", leafQuery);
+    -- print("evalLeaf:", leafQuery);
     local name, comparison, value = leafQuery:match("^(%S+) (%S+) (%S+)$")
     if (not name) then
         -- print("Error evaluateLeaf", leafQuery);
