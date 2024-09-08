@@ -210,11 +210,13 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Potions                     | 1           |
    | Elixirs                     | 2           |
    | Flasks                      | 3           |
+   | Scrolls                     | 4           |
    | Food & Drink                | 5           |
    | Bandages                    | 7           |
    | Other                       | 8           |
    | Vantus Runes                | 9           |
-   | Scrolls                     | 11          |
+   | UtilityCurio                | 10          |
+   | CombatCurio                 | 11          |
    | Artifact Power              | 13          |
 
    **Example Query**:

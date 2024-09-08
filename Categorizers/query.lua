@@ -3,11 +3,7 @@ AddonNS = AddonNS or {}
 local QueryCategorizer = {};
 AddonNS.QueryCategories = {}
 
-AddonNS.Categories:RegisterCategorizer("Query", QueryCategorizer, false);
-local name = ITEM_QUALITY_COLORS[Enum.ItemQuality.Poor].hex .. "Junk";
-function QueryCategorizer:GetConstantCategories()
-    return { name }
-end
+
 
 local ValueType = {
     STRING = 1,
@@ -225,7 +221,7 @@ local alwaysFalse = function() end
 local space = ""
 function evaluateLeaf(leafQuery)
     leafQuery = trim(leafQuery);
-    -- print("evalLeaf:", leafQuery);
+    print("evalLeaf:", leafQuery);
     local name, comparison, value = leafQuery:match("^(%S+) (%S+) (%S+)$")
     if (not name) then
         -- print("Error evaluateLeaf", leafQuery);
@@ -345,7 +341,8 @@ local function evaluate(query)
         end
 
         if (not tokenString) then
-            tokenString = query:match("(.*) AND ") or query:match("(.*) OR ") or query:match("(.*) NOT ") or query:match("(.*)");
+            tokenString = query:match("(.-) AND ") or query:match("(.-) OR ") or query:match("(.-) NOT ") or
+            query:match("(.*)");
             if (tokenString) then
                 local func = evaluateLeaf(tokenString)
                 local notFunc;
@@ -457,8 +454,13 @@ function AddonNS.QueryCategories:GetQuery(categoryName)
 end
 
 function AddonNS.QueryCategories:SetQuery(categoryName, query)
-    queryCategories[categoryName] = query;
-    queryFunctions[categoryName] = evaluate(prepare(query));
+    if #trim(query) == 0 then
+        queryCategories[categoryName] = nil;
+        queryFunctions[categoryName] = nil
+    else
+        queryCategories[categoryName] = query;
+        queryFunctions[categoryName] = evaluate(prepare(query));
+    end
 end
 
 function AddonNS.QueryCategories:OnInitialize()
@@ -466,14 +468,12 @@ function AddonNS.QueryCategories:OnInitialize()
     queryCategories = AddonNS.db.queryCategories;
 
     for key, value in pairs(queryCategories) do
-        print("tutaj", key, valye)
         queryFunctions[key] = evaluate(prepare(value));
     end
 end
 
-
 local function test()
-    local query = "isCraftingReagent = false or isCraftingReagent = true" -- AND (itemType = 'weapon' AND ilvl >= 20)
+    local query = "itemType !=4 and itemType != 5 and itemType = 3" -- AND (itemType = 'weapon' AND ilvl >= 20)
 
     -- local query = " (type = 'weapon' AND level >= 20) OR (name = 'Epic')"
     local prepareed = prepare(query);
@@ -492,3 +492,5 @@ end
 -- test()
 
 AddonNS.Events:OnInitialize(AddonNS.QueryCategories.OnInitialize)
+
+AddonNS.Categories:RegisterCategorizer("Query", QueryCategorizer, false);
