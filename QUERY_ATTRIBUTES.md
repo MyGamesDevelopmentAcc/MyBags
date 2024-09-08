@@ -362,14 +362,35 @@ This documentation should give you a detailed understanding of how to use the `i
    - **Description**: Specifies the inventory slot type (e.g., Head, Chest).
    - **Possible Values**:
 
-   | Slot Name       | inventoryType |
-   |-----------------|---------------|
-   | Head            | 1             |
-   | Chest           | 5             |
-   | Legs            | 7             |
-   | Feet            | 8             |
-   | Weapon (Main)   | 13            |
-   | Weapon (Offhand)| 14            |
+| Inventory Slot                    | `inventoryType` |
+|------------------------------------|-----------------|
+| Non-Equipable (None)               | 0               |
+| Head                               | 1               |
+| Neck                               | 2               |
+| Shoulders                          | 3               |
+| Shirt                              | 4               |
+| Chest                              | 5               |
+| Waist                              | 6               |
+| Legs                               | 7               |
+| Feet                               | 8               |
+| Wrist                              | 9               |
+| Hands                              | 10              |
+| Finger                             | 11              |
+| Trinket                            | 12              |
+| One-Handed Weapon (Main Hand)      | 13              |
+| Shield or Off-Hand                 | 14              |
+| Ranged                             | 15              |
+| Cloak                              | 16              |
+| Two-Handed Weapon                  | 17              |
+| Bag                                | 18              |
+| Tabard                             | 19              |
+| Robe                               | 20              |
+| One-Handed Weapon (Off-Hand)       | 21              |
+| Held in Off-Hand                   | 22              |
+| Ammo                               | 24              |
+| Thrown                             | 25              |
+| Ranged Right (Wands, Guns, Bows)   | 26              |
+| Relic                              | 28              |
 
    **Example Query**:
    ```lua
@@ -431,12 +452,40 @@ This documentation should give you a detailed understanding of how to use the `i
    - **Description**: Indicates the type of binding for the item.
    - **Possible Values**:
 
-   | Bind Type             | bindType |
-   |-----------------------|----------|
-   | None                  | 0        |
-   | Bind on Pickup (BoP)   | 1        |
-   | Bind on Equip (BoE)    | 2        |
-   | Bind on Use (BoU)      | 3        |
+   | Bind Type                              | `bindType` |
+   |----------------------------------------|------------|
+   | None (Not Bound)                       | 0          |
+   | Bind on Pickup (BoP / OnAcquire)       | 1          |
+   | Bind on Equip (BoE)                    | 2          |
+   | Bind on Use (BoU)                      | 3          |
+   | Quest Item (Bound to Quest)            | 4          |
+   | Unused (Unused1)                       | 5          |
+   | Unused (Unused2)                       | 6          |
+   | Bind to WoW Account (BoA)              | 7          |
+   | Bind to Battle.net Account (BoBA / Warband) | 8          |
+   | Bind to Battle.net Account until Equipped (BoBA / Warband) | 9          |
+
+   ---
+
+   #### Explanation:
+
+   1. **None (`bindType = 0`)**: The item is not bound and can be freely traded or sold.
+
+   2. **Bind on Pickup (BoP, `bindType = 1`)**: The item becomes soulbound when picked up or looted.
+
+   3. **Bind on Equip (BoE, `bindType = 2`)**: The item becomes soulbound when equipped.
+
+   4. **Bind on Use (BoU, `bindType = 3`)**: The item becomes soulbound when used.
+
+   5. **Quest Item (`bindType = 4`)**: Items bound to a specific quest, typically non-tradeable.
+
+   6. **Unused (`bindType = 5` and `bindType = 6`)**: These values are not in use.
+
+   7. **Bind to WoW Account (BoA, `bindType = 7`)**: The item becomes account-bound to the player's World of Warcraft account, allowing transfers between characters on the same WoW account.
+
+   8. **Bind to Battle.net Account (BoBA / Warband, `bindType = 8`)**: These items are bound to the entire Battle.net account (also referred to as Warband-bound), allowing transfer between characters across multiple WoW licenses under the same account.
+
+   9. **Bind to Battle.net Account until Equipped (BoBA / Warband, `bindType = 9`)**: The item is initially bound to the Battle.net account but will become soulbound when equipped by a character. Until then, it can be transferred between characters on the same Battle.net account (Warband).
 
    **Example Query**:
    ```lua
