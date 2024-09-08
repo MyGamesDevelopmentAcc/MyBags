@@ -2,6 +2,7 @@ local addonName, AddonNS = ...
 AddonNS = AddonNS or {}
 local QueryCategorizer = {};
 AddonNS.QueryCategories = {}
+
 AddonNS.Categories:RegisterCategorizer("Query", QueryCategorizer, false);
 local name = ITEM_QUALITY_COLORS[Enum.ItemQuality.Poor].hex .. "Junk";
 function QueryCategorizer:GetConstantCategories()
@@ -227,20 +228,18 @@ function evaluateLeaf(leafQuery)
     -- print("evalLeaf:", leafQuery);
     local name, comparison, value = leafQuery:match("^(%S+) (%S+) (%S+)$")
     if (not name) then
-        print("Error evaluateLeaf", leafQuery);
+        -- print("Error evaluateLeaf", leafQuery);
         return alwaysFalse
     else
         return GetRetiver(name, comparison, value);
     end
 end
 
-local orCnt = 0;
-local andCnt = 0;
 local function pumpUp()
-    space = space .. "\t"
+    space = space .. "_ "
 end
 local function pumpDown()
-    space = space:sub(2);
+    space = space:sub(3);
 end
 local function evaluate(query)
     -- print("eval:", query)
@@ -249,11 +248,9 @@ local function evaluate(query)
 
     local andFunctions;
     local orFunctions = {};
-    local orCntL = orCnt;
-    orCnt = orCnt + 1;
     local orFunction = function(itemInfo)
-        -- print(space .. "orFunctionsCount", orCntL, #orFunctions)
-            if(#orFunctions==0) then return false; end
+        -- print(space .. "orFunctionsCount", #orFunctions)
+        if (#orFunctions == 0) then return false; end
 
         for _, v in ipairs(orFunctions) do
             -- print(space .. "<OR>", v)
@@ -270,10 +267,8 @@ local function evaluate(query)
     local function newAndFunction()
         local localAndFunctions = {};
         andFunctions = localAndFunctions;
-        local andCntL = andCnt;
-        andCnt = andCnt + 1;
         local andFunction = function(itemInfo)
-            -- print(space .. "andFunctionsCount", andCntL, #andFunctions)
+            -- print(space .. "andFunctionsCount", #andFunctions)
             for _, v in ipairs(localAndFunctions) do
                 -- print(space .. "<AND>", v)
                 pumpUp()
@@ -282,7 +277,7 @@ local function evaluate(query)
                 -- print(space .. "</AND>", v, val)
                 if not val then return false end
             end
-            if(#localAndFunctions==0) then return false; end
+            if (#localAndFunctions == 0) then return false; end
             return true;
         end;
         table.insert(orFunctions, andFunction);
@@ -293,6 +288,7 @@ local function evaluate(query)
     local nextOp = OpEnum.AND
 
     while (#query > 0) do
+        query = trim(query);
         -- print("--", nextOp)
         tokenString = query:match("^%b()");
         -- -- print("ts", tokenString)
@@ -349,7 +345,7 @@ local function evaluate(query)
         end
 
         if (not tokenString) then
-            tokenString = query:match("(.*) AND ") or query:match("(.*) AND ") or query:match("(.*)");
+            tokenString = query:match("(.*) AND ") or query:match("(.*) OR ") or query:match("(.*) NOT ") or query:match("(.*)");
             if (tokenString) then
                 local func = evaluateLeaf(tokenString)
                 local notFunc;
@@ -375,16 +371,6 @@ local function evaluate(query)
     return orFunction;
 end
 
-local query = "isCraftingReagent = asd" -- AND (itemType = 'weapon' AND ilvl >= 20)
-
--- local query = " (type = 'weapon' AND level >= 20) OR (name = 'Epic')"
-local func = evaluate(prepare(query));
-local testItem = {
-    itemName = "Epic",
-    isCraftingReagent = false,
-    itemType = 3,
-    ilvl = 120
-}
 local queryCategories = {
     ["CraftingReagent"] = "isCraftingReagent = true",
     ["Recipes"] = "itemType = 9"
@@ -392,7 +378,6 @@ local queryCategories = {
 
 local queryFunctions = {
 }
-
 
 function QueryCategorizer:Categorize(itemID, itemButton)
     local itemInfo = C_Container
@@ -456,6 +441,7 @@ function QueryCategorizer:Categorize(itemID, itemButton)
     }
 
     for categoryName, func in pairs(queryFunctions) do
+        -- print("start check", categoryName)
         if (func(allItemInfo)) then
             return categoryName
         end
@@ -478,11 +464,31 @@ end
 function AddonNS.QueryCategories:OnInitialize()
     AddonNS.db.queryCategories = AddonNS.db.queryCategories or queryCategories;
     queryCategories = AddonNS.db.queryCategories;
-    
+
     for key, value in pairs(queryCategories) do
         print("tutaj", key, valye)
         queryFunctions[key] = evaluate(prepare(value));
     end
 end
+
+
+local function test()
+    local query = "isCraftingReagent = false or isCraftingReagent = true" -- AND (itemType = 'weapon' AND ilvl >= 20)
+
+    -- local query = " (type = 'weapon' AND level >= 20) OR (name = 'Epic')"
+    local prepareed = prepare(query);
+    print(prepareed)
+    local func = evaluate(prepareed);
+    local testItem = {
+        itemName = "Epic",
+        isCraftingReagent = true,
+        itemType = 3,
+        ilvl = 120
+    }
+    print("Lets go!")
+    print(func(testItem))
+end
+
+-- test()
 
 AddonNS.Events:OnInitialize(AddonNS.QueryCategories.OnInitialize)
