@@ -383,8 +383,6 @@ local testItem = {
     itemType = 3,
     ilvl = 120
 }
--- print("Lets go!")
--- print(func(testItem))
 local queryCategories = {
     ["CraftingReagent"] = "isCraftingReagent = true",
     ["Recipes"] = "itemType = 9"
@@ -392,13 +390,7 @@ local queryCategories = {
 
 local queryFunctions = {
 }
-local function refresh()
-    for key, value in pairs(queryCategories) do
-        queryFunctions[key] = evaluate(prepare(value));
-    end
-end
 
-refresh()
 
 function QueryCategorizer:Categorize(itemID, itemButton)
     local itemInfo = C_Container
@@ -480,3 +472,15 @@ function AddonNS.QueryCategories:SetQuery(categoryName, query)
     queryCategories[categoryName] = query;
     queryFunctions[categoryName] = evaluate(prepare(query));
 end
+
+function AddonNS.QueryCategories:OnInitialize()
+    AddonNS.db.queryCategories = AddonNS.db.queryCategories or queryCategories;
+    queryCategories = AddonNS.db.queryCategories;
+    
+    for key, value in pairs(queryCategories) do
+        print("tutaj", key, valye)
+        queryFunctions[key] = evaluate(prepare(value));
+    end
+end
+
+AddonNS.Events:OnInitialize(AddonNS.QueryCategories.OnInitialize)
