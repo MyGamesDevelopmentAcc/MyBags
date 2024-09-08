@@ -13,8 +13,8 @@ function AddonNS.createGUI()
     containerFrame:Hide();
 
     local editButton = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
-    
-    editButton:SetPoint("TOPRIGHT",  BagItemAutoSortButton, "TOPLEFT", -4, 0);
+
+    editButton:SetPoint("TOPRIGHT", BagItemAutoSortButton, "TOPLEFT", -4, 0);
 
     editButton:SetSize(60, 23)
     editButton:SetText("Edit")
@@ -61,7 +61,7 @@ function AddonNS.createGUI()
             function(rowData, button)
                 AddonNS.DragAndDrop.customCategoryGUIOnMouseUp(rowData[1], button)
             end, true)
-        
+
         list:SetButtonOnReceiveDragFunction(
             function(rowData)
                 AddonNS.DragAndDrop.customCategoryGUIOnReceiveDrag(rowData[1])
@@ -134,11 +134,54 @@ function AddonNS.createGUI()
         if list:GetSelected() then
             renameButton:Enable()
             deleteButton:Enable()
+            local query = AddonNS.QueryCategories:GetQuery(list:GetSelected()[1][1])
+            print(list:GetSelected()[1][1], list:GetSelected()[1], query)
+            containerFrame.textScrollFrame.EditBox:SetText(query);
         else
             renameButton:Disable()
             deleteButton:Disable()
         end
     end)
+
+
+
+    -- [[ GUI - textScrollFrame]]
+    local function createEditBox(frame, posX, posY, height)
+        local textScrollFrame = CreateFrame("ScrollFrame", nil, frame, "InputScrollFrameTemplate")
+
+        textScrollFrame:SetHeight(height)
+        textScrollFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", posX, posY);
+        textScrollFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -posX, posY);
+
+        InputScrollFrame_OnLoad(textScrollFrame);
+        textScrollFrame.EditBox:SetMaxLetters(255);
+        textScrollFrame.EditBox:SetCountInvisibleLetters(false);
+        -- textScrollFrame.EditBox:SetSpacing(5)
+        textScrollFrame.EditBox:SetFontObject(NumberFont_Shadow_Tiny)
+        --    textScrollFrame.EditBox:SetJustifyH("CENTER"
+        return textScrollFrame
+    end
+    containerFrame.textScrollFrame = createEditBox(containerFrame, 25, -60, 60)
+
+
+    --- [[ delete button]]
+    local saveQueryButton = CreateFrame("Button", nil, containerFrame, "UIPanelButtonTemplate")
+    saveQueryButton:SetPoint("TOPLEFT", containerFrame.textScrollFrame, "BOTTOMLEFT", 5, 10);
+
+    saveQueryButton:SetSize(60, 20)
+    saveQueryButton:SetText("Save Query")
+
+    saveQueryButton:SetScript("OnClick", function(self, button)
+
+
+        
+        AddonNS.QueryCategories:SetQuery(list:GetSelected()[1][1], containerFrame.textScrollFrame.EditBox:GetText())
+        RunNextFrame(function()
+            container:UpdateItemLayout();
+        end);
+        
+    end)
+
 
 
     -- popup definition
@@ -199,9 +242,11 @@ function AddonNS.createGUI()
                 container:UpdateItemLayout();
             end);
             list:RefreshList();
-            if list:GetSelected() then
+            if list:GetSelected() then -- todo this is a duplicated code
                 renameButton:Enable()
                 deleteButton:Enable()
+                local query = AddonNS.QueryCategories:GetQuery(list:GetSelected()[1][1])
+                containerFrame.textScrollFrame.EditBox:SetText(query);
             else
                 renameButton:Disable()
                 deleteButton:Disable()
