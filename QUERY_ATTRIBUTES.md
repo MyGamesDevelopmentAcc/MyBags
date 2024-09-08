@@ -142,13 +142,50 @@ Below is the documentation for each supported attribute in the query system, inc
    - **Description**: The type of the item (e.g., Weapon, Armor).
    - **Possible Values**:
 
-   | Item Type      | itemType |
-   |----------------|----------|
-   | Consumable     | 0        |
-   | Container      | 1        |
-   | Weapon         | 2        |
-   | Armor          | 4        |
-   | Recipe         | 9        |
+
+| Item Type                     | `itemType` |
+|-------------------------------|------------|
+| Consumable                    | 0          |
+| Container                     | 1          |
+| Weapon                        | 2          |
+| Gem                           | 3          |
+| Armor                         | 4          |
+| Reagent                       | 5          |
+| Projectile                    | 6          |
+| Trade Goods                   | 7          |
+| Recipe                        | 9          |
+| Money                         | 10         |
+| Quiver                        | 11         |
+| Quest                         | 12         |
+| Key                           | 13         |
+| Permanent                     | 14         |
+| Miscellaneous                 | 15         |
+| Glyph                         | 16         |
+| Battle Pets                   | 17         |
+| WoW Token                     | 18         |
+
+---
+
+Here’s a brief description of each `itemType`:
+
+- **0 - Consumable**: Items that are consumed when used, such as potions, food, flasks, and bandages.
+- **1 - Container**: Bags and specialized storage containers (e.g., herb bags, mining bags).
+- **2 - Weapon**: Items used in combat, including swords, axes, bows, and more.
+- **3 - Gem**: Socketable gems that enhance stats when placed into equipment with sockets.
+- **4 - Armor**: Worn items that provide protection, including shields.
+- **5 - Reagent**: Materials used in crafting recipes, such as enchanting materials.
+- **6 - Projectile**: Arrows or bullets, used with certain ranged weapons. (Mostly deprecated after changes to ranged weapons in WoW)
+- **7 - Trade Goods**: Items used for professions and crafting that don’t fit under other categories.
+- **9 - Recipe**: Crafting recipes for professions like Alchemy, Blacksmithing, and Cooking.
+- **10 - Money**: Currency in the game (though this is rarely used as an item type in common queries).
+- **11 - Quiver**: Items that were used to store projectiles (e.g., arrows). This item type is mostly deprecated.
+- **12 - Quest**: Items that are tied to quests, often required to complete objectives.
+- **13 - Key**: Items that unlock specific areas or chests, no longer commonly used in the game.
+- **14 - Permanent**: Special items that often have a permanent effect, rare to see in modern expansions.
+- **15 - Miscellaneous**: Items that don’t fit into other categories, including mounts, pets, and vanity items.
+- **16 - Glyph**: Items that apply visual or mechanical modifications to spells (used with the Glyph system).
+- **17 - Battle Pets**: Pets used in the pet battle system.
+- **18 - WoW Token**: In-game tokens that can be sold for gold or redeemed for game time.
 
    **Example Query**:
    ```lua
