@@ -45,3 +45,32 @@
 * ~the draggin workaround with empty button might not work properly when the bag is full, reagent is bought or pulled from bank / merchant. We could verify the type of the item dragged and then if it is reagent then try by default to put in the reagent. Or maybe there is some other, more generic function which would just put the item into the bags?~ Actually it seems game somehow handles this correctly when trying to assign from merchant, but still not from bank. Either I figure this out, leave as it [as you can still right click], or create a check if reagent then assign another empty button from reagent frame.
 * Add ability to hide category so it won't show, nor the items in it
 * add ability to disable category so it will stop catching items, but will exist. Items assigned by category will no longer be caught by this category. If they are moved to another category from unassigned, they will get removed from this category.
+* Removing of equipment set set does not update the categorizer
+* Handle use case when opening bag with something inside, so that preferably, if possible, the place where the item bag was a second ago, did not disapear and remain either empty, or replaced with an empty itembutton. That makes me actually wonderr -what happens if I move an item onto an empty item button? Will it assing a new category properly? I think it should as at this point in time that item button should not be yet recategorized... Anyway - here is a sample output of opening a container with items inside it:
+```
+    itemOnClick
+    BAG_UPDATE 1
+    FREE BAGS 93 10000
+    FIRED
+    UpdateItemLayout
+    EnumerateValidItems override used
+    called anchor again?
+    Anchor 0 4
+    money frame: table: 0000025B2C9B1330 table: 0000025B2C9B1330
+    You receive item: [Blessing Blossom ]x3
+    You receive item: [Ironclaw Ore ]x2
+    BAG_UPDATE 5
+    FREE BAGS 91 93
+    BAG_UPDATE 5
+    FREE BAGS 91 91
+    BAG_UPDATE 5
+    FREE BAGS 91 91
+    BAG_UPDATE 5
+    FREE BAGS 91 91
+    FIRED
+    UpdateItemLayout
+    EnumerateValidItems override used
+    called anchor again?
+    Anchor 0 4
+    money frame: table: 0000025B2C9B1330 table: 0000025B2C9B1330
+```

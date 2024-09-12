@@ -2,7 +2,7 @@ local addonName, AddonNS = ...
 
 local NewItemCategorizer = {};
 
--- AddonNS.Categories:RegisterCategorizer("New", NewItemCategorizer, true);
+AddonNS.Categories:RegisterCategorizer("New", NewItemCategorizer, true);
 
 
 function NewItemCategorizer:Categorize(itemID, itemButton)

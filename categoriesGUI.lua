@@ -166,9 +166,9 @@ function AddonNS.createGUI()
 
     --- [[ delete button]]
     local saveQueryButton = CreateFrame("Button", nil, containerFrame, "UIPanelButtonTemplate")
-    saveQueryButton:SetPoint("TOPLEFT", containerFrame.textScrollFrame, "BOTTOMLEFT", 5, 10);
+    saveQueryButton:SetPoint("TOPLEFT", containerFrame.textScrollFrame, "BOTTOMLEFT", 5, -2);
 
-    saveQueryButton:SetSize(60, 20)
+    saveQueryButton:SetSize(100, 20)
     saveQueryButton:SetText("Save Query")
 
     saveQueryButton:SetScript("OnClick", function(self, button)

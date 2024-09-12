@@ -153,6 +153,7 @@ Below is the documentation for each supported attribute in the query system, inc
 | Reagent                       | 5          |
 | Projectile                    | 6          |
 | Trade Goods                   | 7          |
+| Item Enhancement              | 8          |
 | Recipe                        | 9          |
 | Money                         | 10         |
 | Quiver                        | 11         |
@@ -176,6 +177,7 @@ Here’s a brief description of each `itemType`:
 - **5 - Reagent**: Materials used in crafting recipes, such as enchanting materials.
 - **6 - Projectile**: Arrows or bullets, used with certain ranged weapons. (Mostly deprecated after changes to ranged weapons in WoW)
 - **7 - Trade Goods**: Items used for professions and crafting that don’t fit under other categories.
+- **8 - Item Enhancement**: Items used to enhance power of tools, weapon or armor.
 - **9 - Recipe**: Crafting recipes for professions like Alchemy, Blacksmithing, and Cooking.
 - **10 - Money**: Currency in the game (though this is rarely used as an item type in common queries).
 - **11 - Quiver**: Items that were used to store projectiles (e.g., arrows). This item type is mostly deprecated.
