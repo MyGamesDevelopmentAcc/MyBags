@@ -379,8 +379,6 @@ local function evaluate(query)
 end
 
 local queryCategories = {
-    ["CraftingReagent"] = "isCraftingReagent = true",
-    ["Recipes"] = "itemType = 9"
 }
 
 local queryFunctions = {

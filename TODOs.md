@@ -15,8 +15,8 @@ There is a number of things that I can consdier for implementation. Some are mor
 * [solved] initial categories assignment is done by alphabetic order. Useful when we will allow for import of custom categories or external categorizers
 * [solved] the gear categorizer could add icon of the category at the begining? :)
 * [solved] BAG_UPDATE is a bit broken - it was supposed not to refresh the view when items are removed, but fixing one bug caused it to no longer work this way in all cicrumstances. To verify what can we do about it, when actually this event is sent and what info we can get from it.
-* [solved] [I think, as I no longer observe this] breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
-* [in progress] create a categorizer that is based on a query language. Categorizer would create protected categories (is this actually needed?).
+* [solved] create a categorizer that is based on a query language. Categorizer would create protected categories (is this actually needed?).
+* ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * the config should be stored in account wide config so maybe at some point we could introduce profiles.
 * blizzMove addon breakes it seems with this addon - to check whether it breaks only with this addon, or with it disabled as well as it currently does not work properly with other things like talents window so it might just be broken blizzmove.
 * add option to mark category as always visible
