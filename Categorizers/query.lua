@@ -340,15 +340,18 @@ local function evaluate(query)
         end
 
         if (not tokenString) then
-            local andTokenString =query:match("(.-) AND ")
-            local orTokenString =query:match("(.-) OR ")
-            local notTokenString =query:match("(.-) NOT ")
-            local vanilaTokenString =  query:match("(.*)");
+            local andTokenString = query:match("(.-) AND ")
+            local orTokenString = query:match("(.-) OR ")
+            local notTokenString = query:match("(.-) NOT ")
+            local vanilaTokenString = query:match("(.*)");
             tokenString = andTokenString;
-            tokenString = tokenString and orTokenString and #orTokenString < #tokenString and orTokenString or not tokenString and orTokenString or tokenString;
-            tokenString = tokenString and notTokenString and #notTokenString < #tokenString and notTokenString or not tokenString and notTokenString or tokenString;
-            tokenString = tokenString and vanilaTokenString and #vanilaTokenString < #tokenString and vanilaTokenString or not tokenString and vanilaTokenString or tokenString;
-            
+            tokenString = tokenString and orTokenString and #orTokenString < #tokenString and orTokenString or
+                not tokenString and orTokenString or tokenString;
+            tokenString = tokenString and notTokenString and #notTokenString < #tokenString and notTokenString or
+                not tokenString and notTokenString or tokenString;
+            tokenString = tokenString and vanilaTokenString and #vanilaTokenString < #tokenString and vanilaTokenString or
+                not tokenString and vanilaTokenString or tokenString;
+
             query:match("(.*)");
             if (tokenString) then
                 local func = evaluateLeaf(tokenString)
@@ -445,15 +448,10 @@ function QueryCategorizer:Categorize(itemID, itemButton)
     }
 
     for categoryName, func in pairs(queryFunctions) do
-        -- print("start check", categoryName)
         if (func(allItemInfo)) then
             return categoryName
         end
     end
-
-
-
-    -- return itemInfo.quality == Enum.ItemQuality.Poor and name;
 end
 
 function AddonNS.QueryCategories:GetQuery(categoryName)
@@ -468,6 +466,17 @@ function AddonNS.QueryCategories:SetQuery(categoryName, query)
         queryCategories[categoryName] = query;
         queryFunctions[categoryName] = evaluate(prepare(query));
     end
+end
+
+function AddonNS.QueryCategories:DeleteQuery(categoryName)
+    queryCategories[categoryName] = nil;
+    queryFunctions[categoryName] = nil
+end
+
+function AddonNS.QueryCategories:RenameQuery(categoryName, newCategoryName)
+    queryCategories[newCategoryName] = queryCategories[categoryName];
+    queryFunctions[newCategoryName] = queryFunctions[categoryName];
+    self:DeleteQuery(categoryName);
 end
 
 function AddonNS.QueryCategories:OnInitialize()
@@ -501,3 +510,18 @@ end
 AddonNS.Events:OnInitialize(AddonNS.QueryCategories.OnInitialize)
 
 AddonNS.Categories:RegisterCategorizer("Query", QueryCategorizer, false);
+
+
+
+
+local function categoryRenamed(eventName, fromCategoryName, toCategoryName)
+    AddonNS.printDebug("query:", eventName)
+    AddonNS.QueryCategories:RenameQuery(fromCategoryName, toCategoryName)
+end
+
+local function categoryDeleted(eventName, categoryName)
+    AddonNS.printDebug("query:", eventName)
+    AddonNS.QueryCategories:DeleteQuery(categoryName)
+end
+AddonNS.Events:RegisterCustomEvent(AddonNS.Events.CUSTOM_CATEGORY_RENAMED, categoryRenamed)
+AddonNS.Events:RegisterCustomEvent(AddonNS.Events.CUSTOM_CATEGORY_DELETED, categoryDeleted)
