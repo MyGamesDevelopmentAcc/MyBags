@@ -216,7 +216,6 @@ local function GetRetiver(name, comparison, value)
     return Comparators[valueType][comparison].createNew(func, value);
 end
 
-
 local alwaysFalse = function() end
 local space = ""
 function evaluateLeaf(leafQuery)

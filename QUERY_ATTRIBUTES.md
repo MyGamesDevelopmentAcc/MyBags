@@ -139,6 +139,7 @@ Below is the documentation for each supported attribute in the query system, inc
    - **Explanation**: Categorizes items usable by characters of level 60 or lower.
 
 ### 12. **`itemType`** (number)
+Most up to date description of posible values is available at [https://warcraft.wiki.gg/wiki/ItemType](https://warcraft.wiki.gg/wiki/ItemType).
    - **Description**: The type of the item (e.g., Weapon, Armor).
    - **Possible Values**:
 
@@ -188,6 +189,7 @@ Here’s a brief description of each `itemType`:
 - **16 - Glyph**: Items that apply visual or mechanical modifications to spells (used with the Glyph system).
 - **17 - Battle Pets**: Pets used in the pet battle system.
 - **18 - WoW Token**: In-game tokens that can be sold for gold or redeemed for game time.
+- **19 - Profession**: 
 
    **Example Query**:
    ```lua
@@ -204,8 +206,9 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
 ---
 
 #### `itemSubType` Values Based on `itemType`
+This list is incomplete, for more info check [https://warcraft.wiki.gg/wiki/ItemType](https://warcraft.wiki.gg/wiki/ItemType).
 
-##### 1. **`itemType = 0`** (Consumable)
+##### 0. **`itemType = 0`** (Consumable)
    | Subtype Name               | itemSubType |
    |----------------------------|-------------|
    | Explosives                  | 0           |
@@ -214,6 +217,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Flasks                      | 3           |
    | Scrolls                     | 4           |
    | Food & Drink                | 5           |
+   | Item Enhancement            | 6           |
    | Bandages                    | 7           |
    | Other                       | 8           |
    | Vantus Runes                | 9           |
@@ -227,7 +231,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    ```
    - **Explanation**: Categorizes all items that are Potions under the Consumable item type.
 
-##### 2. **`itemType = 1`** (Container)
+##### 1. **`itemType = 1`** (Container)
    | Subtype Name               | itemSubType |
    |----------------------------|-------------|
    | Bag                        | 0           |
@@ -241,6 +245,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Inscription Bag            | 8           |
    | Tackle Box                 | 9           |
    | Cooking Bag                | 10          |
+   | Reagent Bag                | 11          |
 
    **Example Query**:
    ```lua
@@ -248,7 +253,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    ```
    - **Explanation**: Categorizes all Enchanting Bags under the Container item type.
 
-##### 3. **`itemType = 2`** (Weapon)
+##### 2. **`itemType = 2`** (Weapon)
    | Subtype Name               | itemSubType |
    |----------------------------|-------------|
    | One-Handed Axes             | 0           |
@@ -262,9 +267,13 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Two-Handed Swords           | 8           |
    | Warglaives                  | 9           |
    | Staffs                      | 10          |
+   | Bearclaw                    | 11          |
+   | Catclaw                     | 12          |
    | Fist Weapons                | 13          |
+   | Generic                     | 14          |
    | Daggers                     | 15          |
    | Thrown                      | 16          |
+   | Spears                      | 17          |
    | Crossbows                   | 18          |
    | Wands                       | 19          |
    | Fishing Poles               | 20          |
@@ -275,6 +284,28 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    ```
    - **Explanation**: Categorizes all One-Handed Swords under the Weapon item type.
 
+##### 3. **`itemType = 3`** (Gem)
+   | Subtype Name               | itemSubType |
+   |----------------------------|-------------|
+   | Intellect                  | 0           |
+   | Agility                    | 1           |
+   | Strength                   | 2           |
+   | Stamina                    | 3           |
+   | Spirit                     | 4           |
+   | Criticalstrike             | 5           |
+   | Mastery                    | 6           |
+   | Haste                      | 7           |
+   | Versatility                | 8           |
+   | Other                      | 9           |
+   | Multiple Stats             | 10          |
+   | Artifact Relic             | 11          |
+
+   **Example Query**:
+   ```lua
+   itemType = 3 AND itemSubType = 2
+   ```
+   - **Explanation**: Categorizes all gems with strength.
+
 ##### 4. **`itemType = 4`** (Armor)
    | Subtype Name               | itemSubType |
    |----------------------------|-------------|
@@ -282,6 +313,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Leather                    | 2           |
    | Mail                       | 3           |
    | Plate                      | 4           |
+   | Cosmetic                   | 5           |
    | Shields                    | 6           |
    | Librams                    | 7           |
    | Idols                      | 8           |
@@ -299,7 +331,7 @@ The `itemSubType` attribute specifies the detailed subtype of an item, such as t
    | Subtype Name               | itemSubType |
    |----------------------------|-------------|
    | Book                       | 0           |
-   | Leatherworking              | 1           |
+   | Leatherworking             | 1           |
    | Tailoring                  | 2           |
    | Engineering                | 3           |
    | Blacksmithing              | 4           |
