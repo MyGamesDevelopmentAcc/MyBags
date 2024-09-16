@@ -17,7 +17,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 * [solved] BAG_UPDATE is a bit broken - it was supposed not to refresh the view when items are removed, but fixing one bug caused it to no longer work this way in all cicrumstances. To verify what can we do about it, when actually this event is sent and what info we can get from it.
 * [solved] create a categorizer that is based on a query language. Categorizer would create protected categories (is this actually needed?).
 * ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
-* the config should be stored in account wide config so maybe at some point we could introduce profiles.
+* [solved] the config should be stored in account wide config so maybe at some point we could introduce profiles.
 * blizzMove addon breakes it seems with this addon - to check whether it breaks only with this addon, or with it disabled as well as it currently does not work properly with other things like talents window so it might just be broken blizzmove.
 * add option to mark category as always visible
 * add option to force new line on a given category
