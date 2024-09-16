@@ -266,8 +266,9 @@ container.CalculateExtraHeight = extend(container.CalculateExtraHeight,
     end
 )
 
-container.SetScale = extend(container.SetScale, function(f, ...)
-    return f(container, 0.75);
+container.SetScale = extend(container.SetScale, function(f, container, scale)
+    scale = scale > 0.75 and 0.75 or scale;
+    return f(container, scale);
 end);
 
 container.CalculateWidth = extend(container.CalculateWidth,

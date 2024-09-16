@@ -7,7 +7,7 @@ local WowList = LibStub("WowList-1.5");
 function AddonNS.createGUI()
     local container = AddonNS.container;
 
-    local containerFrame = GS:CreateButtonFrame(addonName, 360, 580);
+    local containerFrame = GS:CreateButtonFrame(addonName, 360, 580, true);
     containerFrame:SetPoint("TOPRIGHT", container, "TOPLEFT", 0, -30);
     containerFrame:EnableMouse(true)
     containerFrame:Hide();

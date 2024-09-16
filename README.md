@@ -38,6 +38,11 @@ Some other worth mentioning:
   * for equipment sets (with pretty icons ;) )
 * All items by default land in Unassigned category.
 
+## Move, resize, do not close
+I do not plan at this moment to add this functionality and it can be achieved via these two addons:
+* [BlizzMove](https://github.com/Kiatra/BlizzMove) - move and scale. Unfortunately it does not currently (at the moment of writing) remeber user defined scale and reset with each open. One of the reasons I am considering adding such functionality within this addon.
+* [NoAutoClose](https://github.com/NumyAddon/NoAutoClose) - prevents automatic close of frames when too many open at the same time.
+
 ## Design Decisions
 
 Below are the key decisions made during the development of this addon:
