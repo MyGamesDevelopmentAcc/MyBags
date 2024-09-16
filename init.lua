@@ -1,5 +1,9 @@
 local addonName, AddonNS = ...
 
+--@debug@
+GLOBAL_MyBags = AddonNS;
+--@end-debug@
+
 -- events
 AddonNS.Events = {};
 LibStub("MyLibrary_Events").embed(AddonNS.Events);
@@ -8,18 +12,26 @@ AddonNS.Events.CATEGORY_MOVED = "MYBAGS_CATEGORY_MOVED"
 AddonNS.Events.CATEGORY_MOVED_TO_COLUMN = "MYBAGS_CATEGORY_MOVED_TO_COLUMN"
 AddonNS.Events.CUSTOM_CATEGORY_RENAMED = "MYBAGS_CUSTOM_CATEGORY_RENAMED";
 AddonNS.Events.CUSTOM_CATEGORY_DELETED = "MYBAGS_CUSTOM_CATEGORY_DELETED";
+
 -- DB
-AddonNS.db = {};
-AddonNS.init = function(db)
-    AddonNS.db = db;
-end
 --@debug@
-LibStub("MyLibrary_DB").asyncLoad("dev_MyBagsDB", AddonNS.init);
-GLOBAL_MyBags = AddonNS;
+local dbName = "dev_MyBagsDB"
+local globalDbName = "dev_MyBagsDBGlobal"
 --@end-debug@
 --[===[@non-debug@
-LibStub("MyLibrary_DB").asyncLoad("MyBagsDB", AddonNS.init);
+local dbName = "dMyBagsDB"
+local globalDbName = "MyBagsDBGlobal";
 --@end-non-debug@]===]
+
+AddonNS.db = {};
+AddonNS.init = function()
+    _G[globalDbName] = _G[globalDbName] or _G[dbName] or {};
+    AddonNS.db = _G[globalDbName];
+    -- _G[dbName] = nil; -- we shouldnt nil it. If one has accessed the game on their alt it might overwrite their main config. It is better to leave it as is, so in worst case scenario one could still copy it manually from their main character.
+end
+
+AddonNS.Events:OnDbLoaded(AddonNS.init)
+
 function AddonNS.printDebug(...)
     -- print(...)
 end

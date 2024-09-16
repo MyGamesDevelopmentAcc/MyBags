@@ -25,6 +25,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 * query categorizer should check categories in the order of alphabet till category ordering is introduced
 * add an ability to move categories on the list, so that categorization would not be based on the order of (well, currently random) alhabet
 * category should be selected after creation and list should scroll to it so it was visible
+* categories that currently do not catch any items from backpack into their group, could be considered as rendered at the bottom of the list of categories? Or maybe that is a stupid idea which will only complicate this further. the reason is that when one have a lot of categories, this creates this quite complex list to navigate.
 
 * [in progress] clearup the todos as I think there are duplicates and also these have become unordered due to that
 * if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id). In the menu there should be an option to "always show given category".
@@ -80,6 +81,7 @@ There is a number of things that I can consdier for implementation. Some are mor
     money frame: table: 0000025B2C9B1330 table: 0000025B2C9B1330
 ```
 * when opening bags sometimes not all info about items is available. Create a callback to readjust after data is loaded. Might cause a weird flicker so would need to verify how acceptable that is.
+* create some nice default categories based on what I end up with as my query categories in TWW
 
 ### unknown what they were about, meaning lost in the ether
 * unassigned to junk was behaving weirdly
