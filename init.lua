@@ -19,7 +19,7 @@ local dbName = "dev_MyBagsDB"
 local globalDbName = "dev_MyBagsDBGlobal"
 --@end-debug@
 --[===[@non-debug@
-local dbName = "dMyBagsDB"
+local dbName = "MyBagsDB"
 local globalDbName = "MyBagsDBGlobal";
 --@end-non-debug@]===]
 
