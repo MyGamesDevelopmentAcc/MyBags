@@ -134,7 +134,7 @@ function AddonNS.createGUI()
     end
 
 
---- [[always show checkbox]]
+    --- [[always show checkbox]]
     -- Create a new frame
     local alwaysShowCheckbox = CreateFrame("CheckButton", nil, containerFrame, "ChatConfigCheckButtonTemplate")
 
@@ -148,11 +148,12 @@ function AddonNS.createGUI()
     alwaysShowCheckbox.Text:SetText("Always show")
 
     -- Tooltip for the checkbox
-    alwaysShowCheckbox.tooltip = "Enabling this will make this category always visible, even when no items currently associated with it."
+    alwaysShowCheckbox.tooltip =
+    "Enabling this will make this category always visible, even when no items currently associated with it."
 
     -- Function to run when the checkbox is clicked
-    alwaysShowCheckbox:SetScript("OnClick", function(self)    
-        AddonNS.CategorShowAlways:SetAlwaysShow(getSelectedCategoryName(),  self:GetChecked())
+    alwaysShowCheckbox:SetScript("OnClick", function(self)
+        AddonNS.CategorShowAlways:SetAlwaysShow(getSelectedCategoryName(), self:GetChecked())
         RunNextFrame(function()
             container:UpdateItemLayout();
         end);
@@ -169,8 +170,14 @@ function AddonNS.createGUI()
     textScrollFrame:SetPoint("BOTTOMRIGHT", containerFrame, "BOTTOMRIGHT", -10, 30);
     -- textScrollFrame:SetPoint("RIGHT", containerFrame, "RIGHT", -posX, posY);
     -- textScrollFrame:SetPoint("LEFT", containerFrame, "LEFT", -posX, posY);
+    local textScrollFrameLoaded = false;
 
-    InputScrollFrame_OnLoad(textScrollFrame);
+    textScrollFrame:SetScript("OnShow", function()
+        if not textScrollFrameLoaded then
+            textScrollFrameLoaded = true;
+            InputScrollFrame_OnLoad(textScrollFrame);
+        end
+    end)
     textScrollFrame.EditBox:SetFontObject(NumberFont_Shadow_Tiny)
 
     containerFrame.textScrollFrame = textScrollFrame
