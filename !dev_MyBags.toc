@@ -39,6 +39,6 @@ categories.lua
 Categorizers/EquipmentSet.lua
 Categorizers/custom.lua
 # Categorizers/quest.lua
-Categorizers/junk.lua
+# Categorizers/junk.lua
 Categorizers/query.lua
 Categorizers/showAlways.lua
