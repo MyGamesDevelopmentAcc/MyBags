@@ -20,7 +20,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 * [solved]blizzMove addon breakes it seems with this addon - to check whether it breaks only with this addon, or with it disabled as well as it currently does not work properly with other things like talents window so it might just be broken blizzmove.
     * the way I solved is that it now works with BlizzMove. However I noticed that by default this addon does not remember scaling of the bags, so I might need to implement such functionality in the end. I'd rather make a merge request, unfortunately the licensing is "all rights reseved" in blizz move addon.
 * ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
-* add option to mark category as always visible
+* [solved] add option to mark category as always visible
 * add option to force new line on a given category
 * unassigned group should always be visible
 * query categorizer should check categories in the order of alphabet till category ordering is introduced
@@ -28,6 +28,8 @@ There is a number of things that I can consdier for implementation. Some are mor
 * category should be selected after creation and list should scroll to it so it was visible
 * categories that currently do not catch any items from backpack into their group, could be considered as rendered at the bottom of the list of categories? Or maybe that is a stupid idea which will only complicate this further. the reason is that when one have a lot of categories, this creates this quite complex list to navigate.
 * consider adding option to manage scale (or at least remember between each open), placement of bag as well as prevent it from auto closing.
+* add colours to categories
+* highlight selected category in the bags and make it temporary visible via always visible or similar functionality.
 
 * [in progress] clearup the todos as I think there are duplicates and also these have become unordered due to that
 * if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id). In the menu there should be an option to "always show given category".

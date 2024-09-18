@@ -22,7 +22,7 @@ function AddonNS.createGUI()
     editButton:SetScript("OnClick", function(self, button)
         if containerFrame:IsShown() then containerFrame:Hide() else containerFrame:Show() end
     end)
-    containerFrame.Inset:SetPoint("BOTTOMRIGHT", -6,106)
+    containerFrame.Inset:SetPoint("BOTTOMRIGHT", -6, 106)
     containerFrame.categoriesContainer = CreateFrame("Frame", addonName .. "-reagentsContainer", containerFrame)
     local categoriesContainter = containerFrame.categoriesContainer;
     categoriesContainter:SetPoint("TOPLEFT", 16, -65)
@@ -128,25 +128,57 @@ function AddonNS.createGUI()
     end)
 
 
-     -- [[ GUI - textScrollFrame]]
+
+    local function getSelectedCategoryName()
+        return list:GetSelected()[1][1];
+    end
+
+
+--- [[always show checkbox]]
+    -- Create a new frame
+    local alwaysShowCheckbox = CreateFrame("CheckButton", nil, containerFrame, "ChatConfigCheckButtonTemplate")
+
+    -- Set the position of the checkbox (parent, anchor, relative to, x offset, y offset)
+    alwaysShowCheckbox:SetPoint("LEFT", deleteButton, "RIGHT", 5, 0);
+
+    -- Set the size of the checkbox
+    alwaysShowCheckbox:SetSize(30, 30)
+
+    -- Set the label for the checkbox (text next to the checkbox)
+    alwaysShowCheckbox.Text:SetText("Always show")
+
+    -- Tooltip for the checkbox
+    alwaysShowCheckbox.tooltip = "Enabling this will make this category always visible, even when no items currently associated with it."
+
+    -- Function to run when the checkbox is clicked
+    alwaysShowCheckbox:SetScript("OnClick", function(self)    
+        AddonNS.CategorShowAlways:SetAlwaysShow(getSelectedCategoryName(),  self:GetChecked())
+        RunNextFrame(function()
+            container:UpdateItemLayout();
+        end);
+    end)
+
+
+
+    -- [[ GUI - textScrollFrame]]
     --  local function createEditBox(frame, posX, posY, height)
-        local textScrollFrame = CreateFrame("ScrollFrame", nil, containerFrame, "InputScrollFrameTemplate")
-        textScrollFrame.hideCharCount = true;
-        -- textScrollFrame:SetHeight(height)
-        textScrollFrame:SetPoint("TOPLEFT", newButton, "BOTTOMLEFT", 6, -10);
-        textScrollFrame:SetPoint("BOTTOMRIGHT", containerFrame, "BOTTOMRIGHT", -10, 30);
-        -- textScrollFrame:SetPoint("RIGHT", containerFrame, "RIGHT", -posX, posY);
-        -- textScrollFrame:SetPoint("LEFT", containerFrame, "LEFT", -posX, posY);
+    local textScrollFrame = CreateFrame("ScrollFrame", nil, containerFrame, "InputScrollFrameTemplate")
+    textScrollFrame.hideCharCount = true;
+    -- textScrollFrame:SetHeight(height)
+    textScrollFrame:SetPoint("TOPLEFT", newButton, "BOTTOMLEFT", 6, -10);
+    textScrollFrame:SetPoint("BOTTOMRIGHT", containerFrame, "BOTTOMRIGHT", -10, 30);
+    -- textScrollFrame:SetPoint("RIGHT", containerFrame, "RIGHT", -posX, posY);
+    -- textScrollFrame:SetPoint("LEFT", containerFrame, "LEFT", -posX, posY);
 
-        InputScrollFrame_OnLoad(textScrollFrame);
-        textScrollFrame.EditBox:SetFontObject(NumberFont_Shadow_Tiny)
+    InputScrollFrame_OnLoad(textScrollFrame);
+    textScrollFrame.EditBox:SetFontObject(NumberFont_Shadow_Tiny)
 
-        containerFrame.textScrollFrame = textScrollFrame
+    containerFrame.textScrollFrame = textScrollFrame
     -- end
     -- containerFrame.textScrollFrame = createEditBox(containerFrame, 25, -60, 60)
 
 
-    --- [[ delete button]]
+    --- [[ saveQueryButton button]]
     local saveQueryButton = CreateFrame("Button", nil, containerFrame, "UIPanelButtonTemplate")
     saveQueryButton:SetPoint("TOP", containerFrame.textScrollFrame, "BOTTOM", 0, -5);
 
@@ -154,7 +186,7 @@ function AddonNS.createGUI()
     saveQueryButton:SetText("Save Query")
 
     saveQueryButton:SetScript("OnClick", function(self, button)
-        AddonNS.QueryCategories:SetQuery(list:GetSelected()[1][1], containerFrame.textScrollFrame.EditBox:GetText())
+        AddonNS.QueryCategories:SetQuery(getSelectedCategoryName(), containerFrame.textScrollFrame.EditBox:GetText())
         RunNextFrame(function()
             container:UpdateItemLayout();
         end);
@@ -163,16 +195,21 @@ function AddonNS.createGUI()
 
     renameButton:Disable()
     deleteButton:Disable()
+    alwaysShowCheckbox:Disable()
     saveQueryButton:Disable()
     list:RegisterCallback("SelectionChanged", function()
         if list:GetSelected() then
             renameButton:Enable()
+            alwaysShowCheckbox:Enable()
+            alwaysShowCheckbox:SetChecked(AddonNS.CategorShowAlways:ShouldAlwaysShow(getSelectedCategoryName()))
             deleteButton:Enable()
             saveQueryButton:Enable()
-            local query = AddonNS.QueryCategories:GetQuery(list:GetSelected()[1][1])
-            
+            local query = AddonNS.QueryCategories:GetQuery(getSelectedCategoryName())
+
             containerFrame.textScrollFrame.EditBox:SetText(query);
         else
+            alwaysShowCheckbox:SetChecked(false)
+            alwaysShowCheckbox:Disable()
             renameButton:Disable()
             deleteButton:Disable()
             saveQueryButton:Disable()
@@ -182,7 +219,7 @@ function AddonNS.createGUI()
 
 
 
-   
+
 
 
 
@@ -226,7 +263,7 @@ function AddonNS.createGUI()
             end
         end,
         OnShow = function(self, data)
-            self.editBox:SetText(list:GetSelected()[1][1])
+            self.editBox:SetText(getSelectedCategoryName())
         end,
         timeout = 0,
         whileDead = true,
@@ -246,16 +283,20 @@ function AddonNS.createGUI()
             list:RefreshList();
             if list:GetSelected() then -- todo this is a duplicated code
                 renameButton:Enable()
+                alwaysShowCheckbox:Enable()
+                alwaysShowCheckbox:SetChecked(AddonNS.CategorShowAlways:ShouldAlwaysShow(getSelectedCategoryName()))
                 deleteButton:Enable()
-                local query = AddonNS.QueryCategories:GetQuery(list:GetSelected()[1][1])
+                local query = AddonNS.QueryCategories:GetQuery(getSelectedCategoryName())
                 containerFrame.textScrollFrame.EditBox:SetText(query);
             else
+                lwaysShowCheckbox:SetChecked(false)
+                alwaysShowCheckbox:Enable()
                 renameButton:Disable()
                 deleteButton:Disable()
             end
         end,
         OnShow = function(self, data)
-            self.editBox:SetText(list:GetSelected()[1][1])
+            self.editBox:SetText(getSelectedCategoryName())
         end,
         timeout = 0,
         whileDead = true,

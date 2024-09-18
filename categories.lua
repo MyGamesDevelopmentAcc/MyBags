@@ -20,17 +20,15 @@ end
 
 function AddonNS.Categories:GetConstantCategories()
     local constantCategories = {}
-    for _, categorizerDef in categorizers:iterate() do
-        if (categorizerDef.categorizer.GetConstantCategories) then
-            local categoriesNames = categorizerDef.categorizer:GetConstantCategories();
-            for i, categoryName in ipairs(categoriesNames) do
-                local protected = categorizerDef.protected;
+    for categoryName, _ in pairs(AddonNS.CategorShowAlways:GetAlwaysShownCategories()) do
+        
+
+                local protected =false; -- todo: replace once protection will be configurable
                 if not categories[categoryName] then
                     categories[categoryName] = { name = categoryName, protected = protected };
                 end
                 table.insert(constantCategories, categories[categoryName]);
-            end
-        end
+
     end
     return constantCategories;
 end
