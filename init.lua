@@ -44,6 +44,7 @@ AddonNS.Const ={
     CATEGORY_HEIGHT = 20,
     MAX_ROWS = 18,
 }
+AddonNS.Const.NUM_ITEM_COLUMNS = AddonNS.Const.ITEMS_PER_ROW * AddonNS.Const.NUM_COLUMNS
 AddonNS.Const.ITEM_SPACING= AddonNS.Const.ORIGINAL_SPACING
 AddonNS.Const.MAX_ITEMS_PER_COLUMN = AddonNS.Const.MAX_ROWS * AddonNS.Const.ITEMS_PER_ROW;
 

@@ -170,18 +170,8 @@ local function GetMouseSectionRelativeToFrame(frame)
     end
 
     -- Determine which section (column) the mouse is in
-    local sectionWidth = frameWidth / 3
-    local section
 
-    if relativeX <= sectionWidth then
-        section = 1
-    elseif relativeX <= sectionWidth * 2 then
-        section = 2
-    else
-        section = 3
-    end
-
-    return section
+    return  math.floor(relativeX*AddonNS.Const.NUM_COLUMNS/frameWidth)+1
 end
 
 

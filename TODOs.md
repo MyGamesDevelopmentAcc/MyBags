@@ -86,6 +86,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 ```
 * when opening bags sometimes not all info about items is available. Create a callback to readjust after data is loaded. Might cause a weird flicker so would need to verify how acceptable that is.
 * create some nice default categories based on what I end up with as my query categories in TWW
+* [REJECTED - in order to keep simplicity and default behaviour ] consider making the number of columns configurable
 
 ### unknown what they were about, meaning lost in the ether
 * unassigned to junk was behaving weirdly

@@ -56,7 +56,7 @@ end
 
 AddonNS.Events:RegisterEvent("BAG_UPDATE");
 function container:GetColumns()
-    return 12
+    return AddonNS.Const.NUM_ITEM_COLUMNS
 end
 
 container.UpdateItemLayout = extend(container.UpdateItemLayout, UpdateItemLayout);
@@ -226,7 +226,7 @@ end);
 
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
-        return f(...) + 2 * AddonNS.Const.COLUMN_SPACING - container:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
+        return f(...) + (AddonNS.Const.NUM_COLUMNS-1) * AddonNS.Const.COLUMN_SPACING - container:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
     end
 )
 
