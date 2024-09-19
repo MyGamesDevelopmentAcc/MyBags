@@ -8,8 +8,7 @@ AddonNS.itemButtonPlaceholder = {}
 local categoryAssignments = {
 }
 
-local categorizeItems = true;
-local arrangedItems = {}
+
 local positionsInBags = {}; -- should we clean this also?
 local categoryPositions = {};
 
@@ -21,12 +20,7 @@ end
 local UpdateItemLayoutCalledAtLeastOnce = false
 
 
-local function UpdateItemLayout(f, ...)
-    AddonNS.printDebug("UpdateItemLayout")
-    UpdateItemLayoutCalledAtLeastOnce = true;
-    categorizeItems = true;
-    return f(...);
-end
+
 
 
 local container = ContainerFrameCombinedBags;
@@ -59,7 +53,7 @@ function container:GetColumns()
     return AddonNS.Const.NUM_ITEM_COLUMNS
 end
 
-container.UpdateItemLayout = extend(container.UpdateItemLayout, UpdateItemLayout);
+
 
 
 local it = container:EnumerateValidItems()
@@ -70,6 +64,7 @@ local height = 0;
 
 AddonNS.emptyItemButton = nil
 local function newIterator(container, index)
+    local arrangedItems = container.MyBags.arrangedItems;
     local index, itemButton = it(container, index);
     if (index == 1) then AddonNS.emptyItemButton = nil end -- reset itemButom
     if (itemButton) then
@@ -158,7 +153,8 @@ local function newIterator(container, index)
                         y = currentRowY - AddonNS.Const.CATEGORY_HEIGHT, --- ITEM_SPACING / 2
                         width = itemSize *
                             (categoryItemsCount > AddonNS.Const.ITEMS_PER_ROW and AddonNS.Const.ITEMS_PER_ROW or categoryItemsCount + expandCategoryToRightColumnBoundary),
-                        height = AddonNS.Const.CATEGORY_HEIGHT + math.ceil(categoryItemsCount / AddonNS.Const.ITEMS_PER_ROW) *
+                        height = AddonNS.Const.CATEGORY_HEIGHT +
+                            math.ceil(categoryItemsCount / AddonNS.Const.ITEMS_PER_ROW) *
                             itemSize,
                     });
                 rowWithNewCategory = true;
@@ -195,20 +191,9 @@ local function newIterator(container, index)
     return index, itemButton;
 end
 
-local function newEnumerateValidItems(container)
+function AddonNS.newEnumerateValidItems(container)
     return newIterator, container, 0;
 end
-
-container.EnumerateValidItems = extend(container.EnumerateValidItems,
-    function(f, ...)
-        if categorizeItems then
-            AddonNS.printDebug("EnumerateValidItems override used")
-            categorizeItems = false;
-            arrangedItems = {}
-            return newEnumerateValidItems(...);
-        end
-        return f(...);
-    end);
 
 local function calculateHeightForCategoriesTitles()
     return height - rows * (container.Items[1]:GetHeight() + ITEM_SPACING);
@@ -226,7 +211,8 @@ end);
 
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
-        return f(...) + (AddonNS.Const.NUM_COLUMNS-1) * AddonNS.Const.COLUMN_SPACING - container:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
+        return f(...) + (AddonNS.Const.NUM_COLUMNS - 1) * AddonNS.Const.COLUMN_SPACING -
+        container:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
     end
 )
 
@@ -264,29 +250,3 @@ container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
 
 
 
-
-
-container.UpdateItemSlots = extend(container.UpdateItemSlots,
-    function(f, ...)
-        AddonNS.printDebug("UpdateItemSlots")
-        f(...);
-
-        local bagSize = ContainerFrame_GetContainerNumSlots(Enum.BagIndex.ReagentBag);
-        for i = 1, bagSize do
-            local itemButton = container:AcquireNewItemButton();
-            local slotID = bagSize - i + 1;
-            itemButton:Initialize(Enum.BagIndex.ReagentBag, slotID);
-        end
-    end);
-
--- need to overwrite this as it is used during enumeration of items in the bags so otherwise it would not incorporate reagentsContainer
-function container:SetBagSize()
-    self.size = 0;
-    for i = 0, Enum.BagIndex.ReagentBag, 1 do
-        self.size = container.size + ContainerFrame_GetContainerNumSlots(i);
-    end
-end
-
-function container:MatchesBagID(id)-- override to include reagent bags
-    return id >= Enum.BagIndex.Backpack and id <= Enum.BagIndex.ReagentBag;
-end
