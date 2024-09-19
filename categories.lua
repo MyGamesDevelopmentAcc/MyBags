@@ -1,5 +1,7 @@
 local addonName, AddonNS = ...
 
+local MAX_ITEMS_PER_COLUMN = AddonNS.Const.MAX_ITEMS_PER_COLUMN
+local NUM_COLUMNS = AddonNS.Const.NUM_COLUMNS;
 AddonNS.Categories = {};
 
 local categoriesColumnAssignments = { {}, {}, {} };
@@ -81,7 +83,6 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     categoryAssignments = { {}, {}, {} };
     local columnSum = { 0, 0, 0 };
     local knownCategories = {};
-    local MAX_ITEMS_PER_COLUMN = AddonNS.MAX_ITEMS_PER_COLUMN
     -- Helper function to add category to a column, splitting if necessary
     local function addCategoryToColumn(category, items, column)
         -- AddonNS.printDebug("addCategoryToColumn", category, category.name,#items)
@@ -116,7 +117,7 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
 
                 if #items > 0 then
                     column = column + 1
-                    if column > AddonNS.NUM_COLUMNS then
+                    if column > NUM_COLUMNS then
                         column = 1 -- Reset to the first column if we exceed the number of columns
                     end
                 end
@@ -138,7 +139,7 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     end
 
 
-    local predictedItemsPerColumn = getBagSize(arrangedItems) / AddonNS.NUM_COLUMNS * 1.1; -- 1.1 modifier to make sure initial columns get more items
+    local predictedItemsPerColumn = getBagSize(arrangedItems) / NUM_COLUMNS * 1.1; -- 1.1 modifier to make sure initial columns get more items
     local column = 1;
 
     local categoriesToAssign = {};
@@ -158,7 +159,7 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     end)
 
     for index, category in ipairs(categoriesToAssign) do
-            while (columnSum[column] > predictedItemsPerColumn and column <= AddonNS.NUM_COLUMNS) do
+            while (columnSum[column] > predictedItemsPerColumn and column <= NUM_COLUMNS) do
                 column = column + 1;
             end
             local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category], column);

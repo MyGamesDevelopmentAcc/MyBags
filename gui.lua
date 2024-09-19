@@ -1,13 +1,12 @@
 local addonName, AddonNS = ...
+local ITEM_SPACING = AddonNS.Const.ITEM_SPACING;
 
 local GS = LibStub("MyLibrary_GUI");
 local test = {
-
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
     edgeSize = 16,
     insets = { left = 4, right = 4, top = 4, bottom = 4 },
-
 }
 local unselectedDarkBackdrop = {
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -53,7 +52,7 @@ AddonNS.gui.categoriesFrames = {};
 --- draggable frame 
 local draggableFrame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
 
-draggableFrame:SetSize(160, AddonNS.CATEGORY_HEIGHT * 2)
+draggableFrame:SetSize(160, AddonNS.Const.CATEGORY_HEIGHT * 2)
 draggableFrame:SetBackdrop({
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -106,15 +105,15 @@ function AddonNS.gui:RegenerateCategories(yFrameOffset, categoriesGUIInfo)
             f:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
             f:SetBackdropColor(1, 0, 0, 0)
             local fs = f:CreateFontString(nil, "ARTWORK", "GameFontNormal");
-            fs:SetPoint("TOPLEFT", f, "TOPLEFT", AddonNS.ITEM_SPACING / 2, -AddonNS.ITEM_SPACING / 2)
-            fs:SetPoint("TOPRIGHT", f, "TOPRIGHT", -AddonNS.ITEM_SPACING / 2, -AddonNS.ITEM_SPACING / 2)
+            fs:SetPoint("TOPLEFT", f, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
+            fs:SetPoint("TOPRIGHT", f, "TOPRIGHT", -ITEM_SPACING / 2, -ITEM_SPACING / 2)
             fs:SetJustifyH("LEFT")
             fs:SetJustifyV("TOP")
             fs:SetWordWrap(false);
 
             f.bg = CreateFrame("Frame", nil, f, "InsetFrameTemplate")
-            f.bg:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -AddonNS.CATEGORY_HEIGHT + AddonNS.COLUMN_SPACING / 2)
-            f.bg:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, AddonNS.COLUMN_SPACING / 2)
+            f.bg:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -AddonNS.Const.CATEGORY_HEIGHT + AddonNS.Const.COLUMN_SPACING / 2)
+            f.bg:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, AddonNS.Const.COLUMN_SPACING / 2)
             f.bg:Hide();
             AddonNS.gui.categoriesFrames[i] = f;
             function f:SetText(text) fs:SetText(text) end

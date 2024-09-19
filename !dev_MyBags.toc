@@ -30,6 +30,7 @@
 
 utils/orderedMap.lua
 init.lua
+main.lua
 dragndrop.lua
 gui.lua
 categoriesGUI.lua
