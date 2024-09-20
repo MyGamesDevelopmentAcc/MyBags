@@ -32,6 +32,7 @@ utils/orderedMap.lua
 init.lua
 main.lua
 ContainerFrameMyBagsMixin.lua
+FrameScale.lua
 dragndrop.lua
 gui.lua
 categoriesGUI.lua

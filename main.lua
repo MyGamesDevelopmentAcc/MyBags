@@ -3,8 +3,6 @@ local addonName, AddonNS = ...
 local ITEM_SPACING = AddonNS.Const.ITEM_SPACING;
 AddonNS.itemButtonPlaceholder = {}
 
-
-
 local categoryAssignments = {
 }
 
@@ -204,10 +202,6 @@ container.CalculateExtraHeight = extend(container.CalculateExtraHeight,
     end
 )
 
-container.SetScale = extend(container.SetScale, function(f, container, scale)
-    scale = scale > 0.75 and 0.75 or scale;
-    return f(container, scale);
-end);
 
 container.CalculateWidth = extend(container.CalculateWidth,
     function(f, ...)
