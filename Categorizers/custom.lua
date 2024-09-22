@@ -33,8 +33,16 @@ function AddonNS.CustomCategories:OnInitialize()
     end
 end
 
-AddonNS.Events:OnInitialize(AddonNS.CustomCategories.OnInitialize)
+function AddonNS.CustomCategories:OnShutDown()
+    customCategories = {};
+    for itemID, categoryName in ipairs(categorizedItems) do
+        categorizedItems[categoryName] = categorizedItems[categoryName] or {};
+        table.insert(categorizedItems[categoryName], itemID);
+    end
+end
 
+AddonNS.Events:OnInitialize(AddonNS.CustomCategories.OnInitialize)
+AddonNS.Events:RegisterEvent("PLAYER_LOGOUT", AddonNS.CustomCategories.OnShutDown);
 function AddonNS.CustomCategories:GetCategories()
     local categories = {};
     for i, _ in pairs(customCategories) do
