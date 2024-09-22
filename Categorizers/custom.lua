@@ -34,10 +34,10 @@ function AddonNS.CustomCategories:OnInitialize()
 end
 
 function AddonNS.CustomCategories:OnShutDown()
-    customCategories = {};
-    for itemID, categoryName in ipairs(categorizedItems) do
-        categorizedItems[categoryName] = categorizedItems[categoryName] or {};
-        table.insert(categorizedItems[categoryName], itemID);
+    AddonNS.db.customCategories = {};
+    for itemID, categoryName in pairs(categorizedItems) do
+        AddonNS.db.customCategories[categoryName] = AddonNS.db.customCategories[categoryName] or {};
+        table.insert(AddonNS.db.customCategories[categoryName], itemID);
     end
 end
 
