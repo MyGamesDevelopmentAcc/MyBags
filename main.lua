@@ -56,8 +56,7 @@ end
 
 local it = container:EnumerateValidItems()
 
-local rows = 0;
-local height = 0;
+
 
 
 AddonNS.emptyItemButton = nil
@@ -102,15 +101,14 @@ local function newIterator(container, index)
         end
     else --[[ iterator finished so we can now tackle the list and calcualte the positions of items, as we now have all the items]]
         local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING;
-        rows = 0;
-        height = 0;
+        container.MyBags.rows = 0;
+        container.MyBags.height = 0;
         categoryPositions = {};
         local function placeItemsInGrid(categoriesObj, columnStartX)
             local currentRow = {}
             local itemPlaceholder = AddonNS.itemButtonPlaceholder;
             local currentRowWidth = 0
             local currentRowY = 0
-            --local rowSubcolumn =0
             local rowWithNewCategory = false;
             local currentRowNo = 0;
             local function flushCurrentRow()
@@ -170,9 +168,9 @@ local function newIterator(container, index)
             if #currentRow > 0 then
                 flushCurrentRow()
             end
-            if (height <= currentRowY) then
-                height = currentRowY;
-                rows = currentRowNo;
+            if (container.MyBags.height <= currentRowY) then
+                container.MyBags.height = currentRowY;
+                container.MyBags.rows = currentRowNo;
             end
         end
 
@@ -193,35 +191,16 @@ function AddonNS.newEnumerateValidItems(container)
     return newIterator, container, 0;
 end
 
-local function calculateHeightForCategoriesTitles()
-    return height - rows * (container.Items[1]:GetHeight() + ITEM_SPACING);
-end
-container.CalculateExtraHeight = extend(container.CalculateExtraHeight,
-    function(f, ...)
-        return calculateHeightForCategoriesTitles() + f(...);
-    end
-)
-
-
-container.CalculateWidth = extend(container.CalculateWidth,
-    function(f, ...)
-        return f(...) + (AddonNS.Const.NUM_COLUMNS - 1) * AddonNS.Const.COLUMN_SPACING -
-        container:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
-    end
-)
 
 container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
     function(f, ...)
         AddonNS.printDebug("called anchor again?");
         local anchor = f(...);
-        function container:GetRows()
-            return rows;
-        end
 
         container:UpdateFrameSize();
 
         local yFrameOffset = container:CalculateHeight() - container:GetPaddingHeight() -
-            container:CalculateExtraHeight() + ITEM_SPACING + calculateHeightForCategoriesTitles();
+            container:CalculateExtraHeight() + ITEM_SPACING + container:CalculateHeightForCategoriesTitles();
         local point, relativeTo, relativePoint, x, y = anchor:Get();
         anchor:Set("TOPLEFT", relativeTo, "TOPLEFT", 0, 0);
         AddonNS.printDebug("Anchor", x, y)

@@ -23,7 +23,12 @@ There is a number of things that I can consdier for implementation. Some are mor
 * [solved - by preventing Blizz UI changing the scale] consider adding option to manage scale (or at least remember between each open), placement of bag as well as prevent it from auto closing.
 * ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
+* [changed] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
+    * renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
+* crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
+* when creating a category clicking Enter should create a category, not close the prompt.
+* could make search actually filter items (without changing bag size)
 * unassigned group should always be visible
 * query categorizer should check categories in the order of alphabet till category ordering is introduced
 * add an ability to move categories on the list, so that categorization would not be based on the order of (well, currently random) alhabet
@@ -31,6 +36,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 * categories that currently do not catch any items from backpack into their group, could be considered as rendered at the bottom of the list of categories? Or maybe that is a stupid idea which will only complicate this further. the reason is that when one have a lot of categories, this creates this quite complex list to navigate.
 * add colours to categories
 * highlight selected category in the bags and make it temporary visible via always visible or similar functionality.
+* how to change a bag to a different bag?
 
 * [in progress] clearup the todos as I think there are duplicates and also these have become unordered due to that
 * if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id). In the menu there should be an option to "always show given category".
@@ -42,7 +48,6 @@ There is a number of things that I can consdier for implementation. Some are mor
 * the categorizers might need a rework. With custom query like option, assignments by mouse, and ability to show always - this is needed, and needed to be easily changed. Also prioritisation of them, if we are talking about query like language as it will be based on the first one to catch with the query will get the item.
 * maybe if unassigned group is visible it should be added a bit more info to the tooltip what will happen if you move item over that group - that it will get unassigned from a custom group and can be picked by other categorizers
 * make it so that when a category is selected, the custom category becomes always visible during that time (?). Alternative is also to allow for multiselect and those selected are always shown, even after categories menu close.
-* reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
 * show somewhere how many empty spaces are left
 * display empty space if available to show how many items we can still add as well as allow for stack splits.
 * add the effect when dragging to indicate that a given cateogry is protected so you cannot assign to it - ie red background, shield pickture and some small text? And when howevering over a category to which you can assign indicate with text that it will be assigned to this one?

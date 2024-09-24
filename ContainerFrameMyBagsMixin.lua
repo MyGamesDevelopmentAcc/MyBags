@@ -7,12 +7,16 @@ local function extend(f, f2)
     end
 end
 
+local ITEM_SPACING = AddonNS.Const.ITEM_SPACING;
+
 local ContainerFrameMyBagsMixin = {};
 
 function ContainerFrameMyBagsMixin:MyBagsInit()
     self.MyBags = {};
     self.MyBags.categorizeItems = true;
     self.MyBags.arrangedItems = {};
+    self.MyBags.rows = 0;
+    self.MyBags.height = 0;
 end
 
 function ContainerFrameMyBagsMixin:UpdateItemLayout(...)
@@ -55,6 +59,23 @@ end
 
 function ContainerFrameMyBagsMixin:MatchesBagID(id) -- override to include reagent bags
     return id >= Enum.BagIndex.Backpack and id <= Enum.BagIndex.ReagentBag;
+end
+
+function ContainerFrameMyBagsMixin:CalculateHeightForCategoriesTitles()
+    return self.MyBags.height - self.MyBags.rows * (self.Items[1]:GetHeight() + ITEM_SPACING);
+end
+
+function ContainerFrameMyBagsMixin:CalculateExtraHeight()
+    return self:CalculateHeightForCategoriesTitles() + ContainerFrameCombinedBagsMixin.CalculateExtraHeight(self);
+end
+
+function ContainerFrameMyBagsMixin:CalculateWidth()
+    return ContainerFrameCombinedBagsMixin.CalculateWidth(self) + (AddonNS.Const.NUM_COLUMNS - 1) * AddonNS.Const.COLUMN_SPACING -
+        self:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
+end
+
+function ContainerFrameMyBagsMixin:GetRows()
+    return self.MyBags.rows;
 end
 
 Mixin(ContainerFrameCombinedBags, ContainerFrameMyBagsMixin);
