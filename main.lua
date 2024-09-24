@@ -15,7 +15,6 @@ local function extend(f, f2)
         return f2(f, ...);
     end
 end
-local UpdateItemLayoutCalledAtLeastOnce = false
 
 
 
@@ -28,7 +27,7 @@ local lockedUpdates = false;
 function AddonNS.Events:BAG_UPDATE(event, bagID)
     AddonNS.printDebug("BAG_UPDATE", bagID)
 
-    if (UpdateItemLayoutCalledAtLeastOnce) then
+    if (container.MyBags.updateItemLayoutCalledAtLeastOnce) then
         local newFreeBagSlots = CalculateTotalNumberOfFreeBagSlots()
 
         AddonNS.printDebug("FREE BAGS", newFreeBagSlots, freeBagSlots)

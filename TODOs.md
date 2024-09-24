@@ -25,7 +25,7 @@ There is a number of things that I can consdier for implementation. Some are mor
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * [changed] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
     * renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
-* crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
+* [possibly resolved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
 * when creating a category clicking Enter should create a category, not close the prompt.
 * could make search actually filter items (without changing bag size)

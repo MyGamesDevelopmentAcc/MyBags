@@ -17,11 +17,12 @@ function ContainerFrameMyBagsMixin:MyBagsInit()
     self.MyBags.arrangedItems = {};
     self.MyBags.rows = 0;
     self.MyBags.height = 0;
+    self.MyBags.updateItemLayoutCalledAtLeastOnce = false
 end
 
 function ContainerFrameMyBagsMixin:UpdateItemLayout(...)
     AddonNS.printDebug("UpdateItemLayout")
-    UpdateItemLayoutCalledAtLeastOnce = true;
+    self.MyBags.updateItemLayoutCalledAtLeastOnce = true;
     self.MyBags.categorizeItems = true;
     return ContainerFrameCombinedBagsMixin.UpdateItemLayout(self, ...);
 end
