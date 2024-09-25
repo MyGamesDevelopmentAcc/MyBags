@@ -16,41 +16,39 @@ local categoryAssignments;
 local UNASSIGNED_CATEGORY = { name = nil, protected = false };
 local categorizers = OrderedMap:new()
 local categories = {};
-function AddonNS.Categories:RegisterCategorizer(name, categorizer, protected)
-    categorizers:set(name, { categorizer = categorizer, protected = protected });
+function AddonNS.Categories:RegisterCategorizer(name, categorizer, protected, description)
+    categorizers:set(name, { categorizer = categorizer, protected = protected, description = description });
 end
 
 function AddonNS.Categories:GetConstantCategories()
     local constantCategories = {}
     for categoryName, _ in pairs(AddonNS.CategorShowAlways:GetAlwaysShownCategories()) do
-        
-
-                local protected =false; -- todo: replace once protection will be configurable
-                if not categories[categoryName] then
-                    categories[categoryName] = { name = categoryName, protected = protected };
-                end
-                table.insert(constantCategories, categories[categoryName]);
-
+        local protected = false; -- todo: replace once protection will be configurable
+        if not categories[categoryName] then
+            categories[categoryName] = { name = categoryName, protected = protected };
+        end
+        table.insert(constantCategories, categories[categoryName]);
     end
     return constantCategories;
 end
 
 function AddonNS.Categories:Categorize(itemID, itemButton)
     local categoryName;
-    local protected = false;
     for _, categorizerDef in categorizers:iterate() do
         categoryName = categorizerDef.categorizer:Categorize(itemID, itemButton);
         if categoryName then
-            protected = categorizerDef.protected;
-            break;
+            if not categories[categoryName] then
+                categories[categoryName] = {
+                    name = categoryName,
+                    protected = categorizerDef.protected,
+                    OnRightClick = categorizerDef.categorizer.OnRightClick,
+                    description = categorizerDef.description
+                };
+            end
+            return categories[categoryName];
         end;
     end
-    if not categoryName then return UNASSIGNED_CATEGORY end
-
-    if not categories[categoryName] then
-        categories[categoryName] = { name = categoryName, protected = protected };
-    end
-    return categories[categoryName];
+    return UNASSIGNED_CATEGORY
 end
 
 local UNASSIGNE_CATEGORY_DB_STORAGE_NAME = "UNASSIGNED_CATEGORY_DB_STORAGE_NAME";
@@ -77,7 +75,7 @@ end
 function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     for i, constantCategory in ipairs(AddonNS.Categories:GetConstantCategories()) do
         if not arrangedItems[constantCategory] then
-            arrangedItems[constantCategory] = {AddonNS.itemButtonPlaceholder}
+            arrangedItems[constantCategory] = { AddonNS.itemButtonPlaceholder }
         end
     end
     categoryAssignments = { {}, {}, {} };
@@ -148,22 +146,22 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
             table.insert(categoriesToAssign, category);
         end
     end
-    table.sort(categoriesToAssign, function (a, b)
+    table.sort(categoriesToAssign, function(a, b)
         if a.name == nil then
-            return false  -- Treat nil as greater than any other value
+            return false           -- Treat nil as greater than any other value
         elseif b.name == nil then
-            return true   -- Treat any value as less than nil
+            return true            -- Treat any value as less than nil
         else
-            return a.name < b.name  -- Regular comparison for non-nil values
+            return a.name < b.name -- Regular comparison for non-nil values
         end
     end)
 
     for index, category in ipairs(categoriesToAssign) do
-            while (columnSum[column] > predictedItemsPerColumn and column <= NUM_COLUMNS) do
-                column = column + 1;
-            end
-            local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category], column);
-            table.insert(categoriesColumnAssignments[firstAssignedColumn], getCategorySafeNameForStorage(category));
+        while (columnSum[column] > predictedItemsPerColumn and column <= NUM_COLUMNS) do
+            column = column + 1;
+        end
+        local firstAssignedColumn = addCategoryToColumn(category, arrangedItems[category], column);
+        table.insert(categoriesColumnAssignments[firstAssignedColumn], getCategorySafeNameForStorage(category));
     end
     return categoryAssignments;
 end
@@ -250,7 +248,7 @@ local function categoryRenamed(eventName, fromCategoryName, toCategoryName)
 end
 
 local function categoryDeleted(eventName, categoryName)
-     AddonNS.printDebug(eventName)
+    AddonNS.printDebug(eventName)
     for colIndex, categoriesNames in ipairs(categoriesColumnAssignments) do
         local i = 1
         while i <= #categoriesNames do

@@ -133,6 +133,10 @@ function AddonNS.gui:RegenerateCategories(yFrameOffset, categoriesGUIInfo)
                     GameTooltip:SetOwner(self);
                     --GameTooltip_SetTitle(GameTooltip, BAG_CLEANUP_BAGS, HIGHLIGHT_FONT_COLOR);
                     GameTooltip_AddNormalLine(GameTooltip, self.fs:GetText());
+                    if (self.ItemCategory.description) then
+                        GameTooltip_AddNormalLine(GameTooltip, self.ItemCategory.description);
+                    end
+
                     GameTooltip:Show();
                 end)
             f:SetScript("OnLeave",
@@ -174,6 +178,7 @@ function AddonNS.gui:RegenerateCategories(yFrameOffset, categoriesGUIInfo)
         f:SetWidth(categoryGUIInfo.width)
         -- fs.fs:SetWidth(categoryGUIInfo.width)
         f:SetHeight(categoryGUIInfo.height)
+        f.OnRightClick = categoryGUIInfo.category.OnRightClick;
         f:SetText(categoryGUIInfo.category.name or "Unassigned");
         f:Show()
         -- f:Raise();

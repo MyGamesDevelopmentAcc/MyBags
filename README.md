@@ -36,6 +36,7 @@ Some other worth mentioning:
 * two default categorizers:
   * for Junk
   * for equipment sets (with pretty icons ;) )
+  * for New items. Right click on category name to move items to their preassigned categories.
 * All items by default land in Unassigned category.
 
 ## Move, resize, do not close

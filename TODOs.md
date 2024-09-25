@@ -1,6 +1,7 @@
 # Things to consider to change
 There is a number of things that I can consdier for implementation. Some are more impacting user, some are rather technical - hence the split.
 
+Some of the things are marked with [!] indicating their cruciallity before exposing this addon to wider audience.
 ## User focused
 * [solved] click on an item in the bag requires you to drop it onto a different item in anothe rcategory. You cannot click another category which is miasligned with the ability to drag onto another category. Same when draggoning on the categories in edit mode.
 * [solved] when too many items are to expand the height to far, the addon should try to automatically split given categories into separate columns.
@@ -21,10 +22,10 @@ There is a number of things that I can consdier for implementation. Some are mor
     * the way I solved is that it now works with BlizzMove. However I noticed that by default this addon does not remember scaling of the bags, so I might need to implement such functionality in the end. I'd rather make a merge request, unfortunately the licensing is "all rights reseved" in blizz move addon.
 * [solved] add option to mark category as always visible
 * [solved - by preventing Blizz UI changing the scale] consider adding option to manage scale (or at least remember between each open), placement of bag as well as prevent it from auto closing.
-* ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
-* there is a bug in custom categories making the assignments to custom categories list grow and grow.
-* [changed] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
+* [resolved][changed - see sub point] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
     * renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
+* [!!!] ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
+* there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * [possibly resolved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
 * when creating a category clicking Enter should create a category, not close the prompt.

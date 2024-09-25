@@ -83,7 +83,6 @@ function AddonNS.DragAndDrop.itemOnReceiveDrag(self)
     elseif pickedItemCategory then -- category frame
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED,
             pickedItemCategory, targetItemCategory);
-        
     end
     RunNextFrame(function()
         container:UpdateItemLayout();
@@ -103,6 +102,13 @@ function AddonNS.DragAndDrop.categoryOnMouseUp(self, button)
     AddonNS.printDebug("categoryOnMouseUp")
     if button == "LeftButton" then
         AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
+    elseif button == "RightButton" and self.OnRightClick then
+        local refreshView = self:OnRightClick(container);
+        if (refreshView) then
+            RunNextFrame(function()
+                container:UpdateItemLayout();
+            end);
+        end
     end
 end
 
@@ -126,11 +132,12 @@ function AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
             ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
         end
         AddonNS.CustomCategories:AssignToCategory(self.ItemCategory, itemID)
+        AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_CATEGORY_CHANGED, pickedItemID, pickedItemButton)
         ClearCursor();
         RunNextFrame(function()
             container:UpdateItemLayout();
         end);
-    elseif pickedItemCategory and (pickedItemCategory ~= targetItemCategor) then -- category frame
+    elseif pickedItemCategory and (pickedItemCategory ~= targetItemCategory) then -- category frame
         AddonNS.printDebug("sending CATEGORY_MOVED", AddonNS.Events.CATEGORY_MOVED)
         AddonNS.Events:TriggerCustomEvent(AddonNS.Events.CATEGORY_MOVED,
             pickedItemCategory, targetItemCategory);
@@ -171,7 +178,7 @@ local function GetMouseSectionRelativeToFrame(frame)
 
     -- Determine which section (column) the mouse is in
 
-    return  math.floor(relativeX*AddonNS.Const.NUM_COLUMNS/frameWidth)+1
+    return math.floor(relativeX * AddonNS.Const.NUM_COLUMNS / frameWidth) + 1
 end
 
 
@@ -192,7 +199,9 @@ function AddonNS.DragAndDrop.backgroundOnReceiveDrag(self)
             if not pickedItemButton and AddonNS.emptyItemButton then
                 ContainerFrameItemButton_OnClick(AddonNS.emptyItemButton, "LeftButton")
             end
-            AddonNS.CustomCategories:AssignToCategory(AddonNS.Categories:GetLastCategoryInColumn(columnNo), itemID)
+            local targetCategory = AddonNS.Categories:GetLastCategoryInColumn(columnNo);
+            AddonNS.CustomCategories:AssignToCategory(targetCategory, itemID)
+            AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_CATEGORY_CHANGED, pickedItemID, pickedItemButton)
             ClearCursor();
             RunNextFrame(function()
                 container:UpdateItemLayout();
@@ -224,6 +233,7 @@ function AddonNS.DragAndDrop.customCategoryGUIOnReceiveDrag(targetItemCategoryNa
         local infoType, itemID, itemLink = GetCursorInfo()
         if infoType == "item" and itemID == pickedItemID then
             local cat = AddonNS.Categories:GetCategoryByName(targetItemCategoryName);
+            AddonNS.Events:TriggerCustomEvent(AddonNS.Events.ITEM_CATEGORY_CHANGED, pickedItemID, pickedItemButton)
             if cat then
                 AddonNS.CustomCategories:AssignToCategory(cat, itemID)
             else

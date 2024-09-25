@@ -38,7 +38,7 @@ gui.lua
 categoriesGUI.lua
 itemsOrder.lua
 categories.lua
-# Categorizers/new.lua
+Categorizers/new.lua
 Categorizers/EquipmentSet.lua
 Categorizers/custom.lua
 # Categorizers/quest.lua
