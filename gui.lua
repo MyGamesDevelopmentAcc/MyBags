@@ -179,7 +179,7 @@ function AddonNS.gui:RegenerateCategories(yFrameOffset, categoriesGUIInfo)
         -- fs.fs:SetWidth(categoryGUIInfo.width)
         f:SetHeight(categoryGUIInfo.height)
         f.OnRightClick = categoryGUIInfo.category.OnRightClick;
-        f:SetText(categoryGUIInfo.category.name or "Unassigned");
+        f:SetText((categoryGUIInfo.category.name or "Unassigned")); -- ..(categoryGUIInfo.category.folded and " +" or " -")
         f:Show()
         -- f:Raise();
     end

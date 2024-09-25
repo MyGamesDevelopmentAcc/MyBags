@@ -50,9 +50,6 @@ function container:GetColumns()
     return AddonNS.Const.NUM_ITEM_COLUMNS
 end
 
-
-
-
 local it = container:EnumerateValidItems()
 
 
@@ -132,35 +129,56 @@ local function newIterator(container, index)
 
             for i, categoryObj in ipairs(categoriesObj) do
                 local categoryItemsCount = #categoryObj.items;
-                if (#currentRow == 0) then
+                local isCategoryFolded = categoryObj.category.folded;
+                local categoryRequiresNewLine = isCategoryFolded or categoryObj.category.separateLine;
+                local requiredNewLine =
+                    categoryRequiresNewLine
+                    or #currentRow == 0
+                    or #currentRow > 0 and
+                    (rowWithNewCategory and currentRowWidth + itemSize * (categoryItemsCount) > AddonNS.Const.ITEMS_PER_ROW * itemSize or not rowWithNewCategory)
+
+                if (i == 1) then
                     currentRowY = currentRowY + AddonNS.Const.CATEGORY_HEIGHT;
-                elseif #currentRow > 0 and (rowWithNewCategory and currentRowWidth + itemSize * (categoryItemsCount) > AddonNS.Const.ITEMS_PER_ROW * itemSize or not rowWithNewCategory) then
-                    flushCurrentRow();
+                elseif requiredNewLine then
+                    if (#currentRow > 0) then
+                        flushCurrentRow();
+                    end
                     currentRowY = currentRowY + AddonNS.Const.CATEGORY_HEIGHT + AddonNS.Const.COLUMN_SPACING;
                 end
-                local expandCategoryToRightColumnBoundary = (#currentRow + categoryItemsCount < AddonNS.Const.ITEMS_PER_ROW and
-                        #currentRow + categoryItemsCount + (categoriesObj[i + 1] and #categoriesObj[i + 1].items or AddonNS.Const.ITEMS_PER_ROW) > AddonNS.Const.ITEMS_PER_ROW) and
-                    (AddonNS.Const.ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
+                local nextCategoryExists = categoriesObj[i + 1] and true or false; -- to be explict, for increased readability
+
+                local expandCategoryToRightColumnBoundary =
+                    (#currentRow + categoryItemsCount < AddonNS.Const.ITEMS_PER_ROW and
+                        (
+                            (not nextCategoryExists)
+                            or categoriesObj[i + 1].category.folded 
+                            or categoriesObj[i + 1].category.separateLine
+                            or #currentRow + categoryItemsCount + #categoriesObj[i + 1].items > AddonNS.Const.ITEMS_PER_ROW
+                        )
+                    )
+                    and (AddonNS.Const.ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
                 table.insert(categoryPositions,
                     {
                         category = categoryObj.category,
                         x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
-                        y = currentRowY - AddonNS.Const.CATEGORY_HEIGHT, --- ITEM_SPACING / 2
+                        y = currentRowY - AddonNS.Const.CATEGORY_HEIGHT,
                         width = itemSize *
                             (categoryItemsCount > AddonNS.Const.ITEMS_PER_ROW and AddonNS.Const.ITEMS_PER_ROW or categoryItemsCount + expandCategoryToRightColumnBoundary),
-                        height = AddonNS.Const.CATEGORY_HEIGHT +
+                        height = AddonNS.Const.CATEGORY_HEIGHT + ((not isCategoryFolded and
                             math.ceil(categoryItemsCount / AddonNS.Const.ITEMS_PER_ROW) *
-                            itemSize,
+                            itemSize) or 0),
                     });
                 rowWithNewCategory = true;
                 local items = categoryObj.items;
-                for j = #items, 1, -1 do
-                    local item = items[j];
-                    if #currentRow >= AddonNS.Const.ITEMS_PER_ROW then
-                        flushCurrentRow()
+                if (not isCategoryFolded) then
+                    for j = #items, 1, -1 do
+                        local item = items[j];
+                        table.insert(currentRow, item)
+                        currentRowWidth = currentRowWidth + itemSize
+                        if #currentRow >= AddonNS.Const.ITEMS_PER_ROW then
+                            flushCurrentRow()
+                        end
                     end
-                    table.insert(currentRow, item)
-                    currentRowWidth = currentRowWidth + itemSize
                 end
             end
 
@@ -190,7 +208,6 @@ function AddonNS.newEnumerateValidItems(container)
     return newIterator, container, 0;
 end
 
-
 container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
     function(f, ...)
         AddonNS.printDebug("called anchor again?");
@@ -206,7 +223,7 @@ container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
 
         anchor.SetPointWithExtraOffset = extend(anchor.SetPointWithExtraOffset,
             function(f, self, possibleItem, clearAllPoints, extraOffsetX, extraOffsetY)
-                if (possibleItem.ItemCategory) then
+                if (possibleItem.ItemCategory and not possibleItem.ItemCategory.folded) then
                     local newXOffset = positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].x;
                     local newYOffset = -positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].y + yFrameOffset;
                     possibleItem:Show();
@@ -219,6 +236,3 @@ container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
 
         return anchor;
     end);
-
-
-

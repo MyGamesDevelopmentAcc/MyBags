@@ -100,10 +100,22 @@ end
 
 function AddonNS.DragAndDrop.categoryOnMouseUp(self, button)
     AddonNS.printDebug("categoryOnMouseUp")
-    if button == "LeftButton" then
-        AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
-    elseif button == "RightButton" and self.OnRightClick then
-        local refreshView = self:OnRightClick(container);
+    local infoType = GetCursorInfo()
+    if infoType then
+        if button == "LeftButton" then
+            AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
+        end
+    else
+        local refreshView = false
+        if button == "LeftButton" then
+            self.ItemCategory.folded = not self.ItemCategory.folded
+            refreshView = true;
+        elseif button == "RightButton" then
+            if (self.OnRightClick) then
+                refreshView = self:OnRightClick(container);
+            end
+        end
+
         if (refreshView) then
             RunNextFrame(function()
                 container:UpdateItemLayout();

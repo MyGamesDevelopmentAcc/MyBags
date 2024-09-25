@@ -24,7 +24,9 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * [solved - by preventing Blizz UI changing the scale] consider adding option to manage scale (or at least remember between each open), placement of bag as well as prevent it from auto closing.
 * [resolved][changed - see sub point] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
     * renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
+* [solved] make categories foldable
 * [!!!] ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
+* persist information that a given category is currently folded
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * [possibly resolved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
