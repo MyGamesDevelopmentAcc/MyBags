@@ -29,7 +29,7 @@ function NewItemCategorizer:CheckNewItems(bagID)
     newItems[bagID] = newItems[bagID] or {};
     for slotIndex, expectedItemID in pairs(newItems[bagID]) do
         local itemLocation = ItemLocation:CreateFromBagAndSlot(bagID, slotIndex);
-        if (not itemLocation or expectedItemID ~= C_Item.GetItemID(itemLocation)) then
+        if (not itemLocation:IsValid() or expectedItemID ~= C_Item.GetItemID(itemLocation)) then
             newItems[bagID][slotIndex] = nil;
         end
     end
