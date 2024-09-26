@@ -39,6 +39,7 @@ Some other worth mentioning:
   * for New items. Right click on category name to move items to their preassigned categories.
 * All items by default land in Unassigned category.
 * left click category to fold it / collapse
+* searching works as a filter (to be verify whether this is helpful or not)
 
 ## Move, resize, do not close
 I do not plan at this moment to add this functionality and it can be achieved via these two addons:

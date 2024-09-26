@@ -45,6 +45,13 @@ function AddonNS.Events:BAG_UPDATE(event, bagID)
     end
 end
 
+function AddonNS.Events:INVENTORY_SEARCH_UPDATE(event, bagID)
+    AddonNS.printDebug("INVENTORY_SEARCH_UPDATE", bagID)
+    container:UpdateItemLayout();
+end
+
+AddonNS.Events:RegisterEvent("INVENTORY_SEARCH_UPDATE");
+
 AddonNS.Events:RegisterEvent("BAG_UPDATE");
 function container:GetColumns()
     return AddonNS.Const.NUM_ITEM_COLUMNS

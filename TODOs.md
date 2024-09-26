@@ -19,19 +19,20 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * [solved] create a categorizer that is based on a query language. Categorizer would create protected categories (is this actually needed?).
 * [solved] the config should be stored in account wide config so maybe at some point we could introduce profiles.
 * [solved]blizzMove addon breakes it seems with this addon - to check whether it breaks only with this addon, or with it disabled as well as it currently does not work properly with other things like talents window so it might just be broken blizzmove.
-    * the way I solved is that it now works with BlizzMove. However I noticed that by default this addon does not remember scaling of the bags, so I might need to implement such functionality in the end. I'd rather make a merge request, unfortunately the licensing is "all rights reseved" in blizz move addon.
+    * [solved] the way I solved is that it now works with BlizzMove. However I noticed that by default this addon does not remember scaling of the bags, so I might need to implement such functionality in the end. I'd rather make a merge request, unfortunately the licensing is "all rights reseved" in blizz move addon.
 * [solved] add option to mark category as always visible
 * [solved - by preventing Blizz UI changing the scale] consider adding option to manage scale (or at least remember between each open), placement of bag as well as prevent it from auto closing.
-* [resolved][changed - see sub point] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
-    * renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
+* [solved][changed - see sub point] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
+    * [solved] renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
 * [solved] make categories foldable
 * [!!!] ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * persist information that a given category is currently folded
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
-* [possibly resolved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
+* [possibly solved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
 * when creating a category clicking Enter should create a category, not close the prompt.
-* could make search actually filter items (without changing bag size)
+* [solved] could make search actually filter items (done with changing the bag size, but to be tested whether that is better / sufficient)
+    * could make search actually filter items (without changing bag size)
 * unassigned group should always be visible
 * query categorizer should check categories in the order of alphabet till category ordering is introduced
 * add an ability to move categories on the list, so that categorization would not be based on the order of (well, currently random) alhabet
