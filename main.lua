@@ -93,7 +93,7 @@ local function newIterator(container, index)
         -- [[ CATEGORISATION ]]
         local info = C_Container.GetContainerItemInfo(itemButton:GetBagID(), itemButton:GetID());
         itemButton.ItemCategory = nil;
-        if (info) then
+        if (info and not info.isFiltered) then
             itemButton.ItemCategory = AddonNS.Categories:Categorize(info.itemID, itemButton);
             arrangedItems[itemButton.ItemCategory] = arrangedItems[itemButton.ItemCategory] or
                 {}
