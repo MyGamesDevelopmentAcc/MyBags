@@ -28,13 +28,13 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * [solved] folded group when have too many items should not leak onto other columns. They are folded in the end.
 * [!!!] ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * [solved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
+* [solved] could make search actually filter items (done with changing the bag size, but to be tested whether that is better / sufficient)
+    * [*todo*] could make search actually filter items (without changing bag size)
+* [solved] when creating a category clicking Enter should create a category, not close the prompt. comment: that was harder than expected...
 * persist information that a given category is currently folded
 * show many items are inside folded group
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * add option to force new line on a given category
-* when creating a category clicking Enter should create a category, not close the prompt.
-* [solved] could make search actually filter items (done with changing the bag size, but to be tested whether that is better / sufficient)
-    * could make search actually filter items (without changing bag size)
 * unassigned group should always be visible
 * query categorizer should check categories in the order of alphabet till category ordering is introduced
 * add an ability to move categories on the list, so that categorization would not be based on the order of (well, currently random) alhabet

@@ -245,10 +245,18 @@ function AddonNS.createGUI()
                 AddonNS.printDebug("Please enter a category name.")
             end
         end,
+        enterClicksFirstButton = true,
         timeout = 0,
         whileDead = true,
         hideOnEscape = true,
         preferredIndex = 3, -- Avoids some UI taint issues
+        EditBoxOnEnterPressed = function(self)
+            self:GetParent().button1:Click();
+        end,
+        EditBoxOnEscapePressed = function(self)
+            self:GetParent():Hide();
+            ClearCursor();
+        end
     }
     StaticPopupDialogs["RENAME_CATEGORY_CONFIRM"] = {
         text = "Enter the new name for \"%s\" category:",
@@ -272,10 +280,18 @@ function AddonNS.createGUI()
         OnShow = function(self, data)
             self.editBox:SetText(getSelectedCategoryName())
         end,
+        enterClicksFirstButton = true,
         timeout = 0,
         whileDead = true,
         hideOnEscape = true,
         preferredIndex = 3, -- Avoids some UI taint issues
+        EditBoxOnEnterPressed = function(self)
+            self:GetParent().button1:Click();
+        end,
+        EditBoxOnEscapePressed = function(self)
+            self:GetParent():Hide();
+            ClearCursor();
+        end
     }
     StaticPopupDialogs["DELETE_CATEGORY_CONFIRM"] = {
         text = "Please confirm you want to remove \"%s\" category.",
@@ -296,7 +312,7 @@ function AddonNS.createGUI()
                 local query = AddonNS.QueryCategories:GetQuery(getSelectedCategoryName())
                 containerFrame.textScrollFrame.EditBox:SetText(query);
             else
-                lwaysShowCheckbox:SetChecked(false)
+                alwaysShowCheckbox:SetChecked(false)
                 alwaysShowCheckbox:Enable()
                 renameButton:Disable()
                 deleteButton:Disable()
@@ -305,6 +321,7 @@ function AddonNS.createGUI()
         OnShow = function(self, data)
             self.editBox:SetText(getSelectedCategoryName())
         end,
+        enterClicksFirstButton = true,
         timeout = 0,
         whileDead = true,
         hideOnEscape = true,
