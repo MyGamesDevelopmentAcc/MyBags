@@ -157,8 +157,9 @@ local function newIterator(container, index)
                 local expandCategoryToRightColumnBoundary =
                     (#currentRow + categoryItemsCount < AddonNS.Const.ITEMS_PER_ROW and
                         (
-                            (not nextCategoryExists)
-                            or categoriesObj[i + 1].category.folded 
+                            isCategoryFolded
+                            or (not nextCategoryExists)
+                            or categoriesObj[i + 1].category.folded
                             or categoriesObj[i + 1].category.separateLine
                             or #currentRow + categoryItemsCount + #categoriesObj[i + 1].items > AddonNS.Const.ITEMS_PER_ROW
                         )
