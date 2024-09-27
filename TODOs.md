@@ -25,8 +25,10 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * [solved][changed - see sub point] reenable new categorizer to work properly with merchant. Maybe mark those items bought from merchant somehow?
     * [solved] renenble new categorizer and make it so that we will store new items and mark them so for a bit long. Right clicking on the title should remove items from new group.
 * [solved] make categories foldable
+* [solved] folded group when have too many items should not leak onto other columns. They are folded in the end.
 * [!!!] ~[solved] [I think, as I no longer observe this]~ breaking of groups does not seem to work properly - looks like it calculates only the amount within a given group whether it goes above the limit, not the entire amount of items in the column
 * persist information that a given category is currently folded
+* show many items are inside folded group
 * there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * [possibly solved] crafting an item, ie. hearty simple stew, when it wasnt in the equipment before wont show it in the bags, reopenning is required.
 * add option to force new line on a given category
@@ -40,7 +42,7 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * categories that currently do not catch any items from backpack into their group, could be considered as rendered at the bottom of the list of categories? Or maybe that is a stupid idea which will only complicate this further. the reason is that when one have a lot of categories, this creates this quite complex list to navigate.
 * add colours to categories
 * highlight selected category in the bags and make it temporary visible via always visible or similar functionality.
-* how to change a bag to a different bag?
+* [not an issue] how to change a bag to a different bag? edit: the same as way any other bag. Click the arrow at the bottom, then you can replace them
 
 * [in progress] clearup the todos as I think there are duplicates and also these have become unordered due to that
 * if ther was a way to properly higlight that an item would have been categorized differentlty by QL if it was unassigned directly by id to a category, we maybe would not need protected categories(Although I think it always should be an option, and those categories would also work before assignment by id). In the menu there should be an option to "always show given category".

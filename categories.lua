@@ -83,8 +83,8 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
     local knownCategories = {};
     -- Helper function to add category to a column, splitting if necessary
     local function addCategoryToColumn(category, items, column)
-        -- AddonNS.printDebug("addCategoryToColumn", category, category.name,#items)
         local firstColumn = nil;
+        items = not category.folded and items or {AddonNS.itemButtonPlaceholder}; -- clear items to be placed if the category is to be folded so they would not leak onto other columns
         AddonNS.ItemsOrder:Sort(items);
         if (#items == 0) then
             firstColumn = column;
