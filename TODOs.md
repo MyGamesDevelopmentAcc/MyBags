@@ -31,9 +31,13 @@ Some of the things are marked with [!] indicating their cruciallity before expos
 * [solved] could make search actually filter items (done with changing the bag size, but to be tested whether that is better / sufficient)
     * [*todo*] could make search actually filter items (without changing bag size)
 * [solved] when creating a category clicking Enter should create a category, not close the prompt. comment: that was harder than expected...
+* rewrite categorization
+    * custom category for whatever reason disapears.
+    * there is a bug in custom categories making the assignments to custom categories list grow and grow.
+    * the rename I am quite certian does not work as it should ie. will loose some preassigned items
+
 * persist information that a given category is currently folded
 * show many items are inside folded group
-* there is a bug in custom categories making the assignments to custom categories list grow and grow.
 * add option to force new line on a given category
 * unassigned group should always be visible
 * query categorizer should check categories in the order of alphabet till category ordering is introduced

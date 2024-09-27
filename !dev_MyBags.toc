@@ -38,6 +38,7 @@ gui.lua
 categoriesGUI.lua
 itemsOrder.lua
 categories.lua
+categoriesColumnAssignment.lua
 Categorizers/new.lua
 Categorizers/EquipmentSet.lua
 Categorizers/custom.lua
