@@ -33,11 +33,23 @@ function AddonNS.CustomCategories:OnInitialize()
     end
 end
 
+
+local function removeDuplicates(list)
+    local seen = {}
+    local result = {}
+
+    for _, value in ipairs(list) do
+        if not seen[value] then
+            seen[value] = true
+            table.insert(result, value)
+        end
+    end
+
+    return result
+end
 function AddonNS.CustomCategories:OnShutDown()
-    AddonNS.db.customCategories = {};
-    for itemID, categoryName in pairs(categorizedItems) do
-        AddonNS.db.customCategories[categoryName] = AddonNS.db.customCategories[categoryName] or {};
-        table.insert(AddonNS.db.customCategories[categoryName], itemID);
+    for categoryName, items in pairs(customCategories) do
+        customCategories[categoryName] = removeDuplicates(items);
     end
 end
 
