@@ -456,6 +456,14 @@ function AddonNS.QueryCategories:GetQuery(categoryName)
     return queryCategories[categoryName] or "";
 end
 
+function AddonNS.QueryCategories:GetCategories()
+    local categories = {};
+    for i, _ in pairs(queryCategories) do
+        categories[i] = true;
+    end
+    return categories;
+end
+
 function AddonNS.QueryCategories:SetQuery(categoryName, query)
     if #trim(query) == 0 then
         queryCategories[categoryName] = nil;

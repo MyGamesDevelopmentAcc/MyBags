@@ -75,6 +75,16 @@ function AddonNS.createGUI()
         for key, value in pairs(categories) do
             list:AddData({ key })
         end
+
+        -- workaround start
+        local queryCategories = AddonNS.QueryCategories:GetCategories() -- todo: remove this once query is merged with custom.
+        for key, value in pairs(queryCategories) do
+            if not categories[key] then
+                list:AddData({ key })
+            end
+        end
+        -- workaround end
+
         list:Sort(1, function(a, b)
             return string.lower(a) < string.lower(b)
         end)
