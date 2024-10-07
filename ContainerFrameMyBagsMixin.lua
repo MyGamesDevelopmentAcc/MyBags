@@ -15,16 +15,47 @@ function ContainerFrameMyBagsMixin:MyBagsInit()
     self.MyBags = {};
     self.MyBags.categorizeItems = true;
     self.MyBags.arrangedItems = {};
+    self.MyBags.positionsInBags = {};
+    self.MyBags.categoryPositions = {};
     self.MyBags.rows = 0;
     self.MyBags.height = 0;
     self.MyBags.updateItemLayoutCalledAtLeastOnce = false
 end
 
-function ContainerFrameMyBagsMixin:UpdateItemLayout(...)
+function ContainerFrameMyBagsMixin:UpdateItemLayout()
     AddonNS.printDebug("UpdateItemLayout")
     self.MyBags.updateItemLayoutCalledAtLeastOnce = true;
     self.MyBags.categorizeItems = true;
-    return ContainerFrameCombinedBagsMixin.UpdateItemLayout(self, ...);
+    local itemButtons = {}
+    for i, itemButton in self:EnumerateValidItems() do -- todo: can refactor this to single loop once I stop using enumerate to assign positions in bags. Otherwsie I have to run over this function first before putting items into proper places
+        table.insert(itemButtons, itemButton);
+    end
+    local yFrameOffset = self:CalculateHeight() - self:GetPaddingHeight() -
+        self:CalculateExtraHeight() + ITEM_SPACING + self:CalculateHeightForCategoriesTitles();
+
+    local anchor = self:GetInitialItemAnchor();
+
+    local _, relativeTo = anchor:Get();
+    anchor:Set("TOPLEFT", relativeTo, "TOPLEFT", 0, 0);
+    local point, relativeTo, relativePoint, x, y = anchor:Get();
+    AddonNS.printDebug("Anchor", x, y)
+
+    self:UpdateFrameSize();
+    for i, itemButton in ipairs(itemButtons) do
+        if (itemButton.ItemCategory and not itemButton.ItemCategory.folded) then
+            local newXOffset = self.MyBags.positionsInBags[itemButton:GetBagID()][itemButton:GetID()].x;
+            local newYOffset = -self.MyBags.positionsInBags[itemButton:GetBagID()][itemButton:GetID()].y + yFrameOffset;
+            itemButton:ClearAllPoints();
+            itemButton:SetPoint(point, relativeTo, relativePoint, x + newXOffset, y + newYOffset);
+            itemButton:Show();
+        else
+            itemButton:Hide();
+        end
+    end
+
+    AddonNS.gui:RegenerateCategories(yFrameOffset, self.MyBags.categoryPositions);
+
+
 end
 
 function ContainerFrameMyBagsMixin:EnumerateValidItems()
@@ -71,7 +102,8 @@ function ContainerFrameMyBagsMixin:CalculateExtraHeight()
 end
 
 function ContainerFrameMyBagsMixin:CalculateWidth()
-    return ContainerFrameCombinedBagsMixin.CalculateWidth(self) + (AddonNS.Const.NUM_COLUMNS - 1) * AddonNS.Const.COLUMN_SPACING -
+    return ContainerFrameCombinedBagsMixin.CalculateWidth(self) +
+        (AddonNS.Const.NUM_COLUMNS - 1) * AddonNS.Const.COLUMN_SPACING -
         self:GetColumns() * (AddonNS.Const.ORIGINAL_SPACING - ITEM_SPACING);
 end
 

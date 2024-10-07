@@ -3,23 +3,6 @@ local addonName, AddonNS = ...
 local ITEM_SPACING = AddonNS.Const.ITEM_SPACING;
 AddonNS.itemButtonPlaceholder = {}
 
-local categoryAssignments = {
-}
-
-
-local positionsInBags = {}; -- should we clean this also?
-local categoryPositions = {};
-
-local function extend(f, f2)
-    return function(...)
-        return f2(f, ...);
-    end
-end
-
-
-
-
-
 local container = ContainerFrameCombinedBags;
 AddonNS.container = container;
 local freeBagSlots = 10000;
@@ -59,12 +42,10 @@ end
 
 local it = container:EnumerateValidItems()
 
-
-
-
 AddonNS.emptyItemButton = nil
 local function newIterator(container, index)
     local arrangedItems = container.MyBags.arrangedItems;
+    local positionsInBags = container.MyBags.positionsInBags;
     local index, itemButton = it(container, index);
     if (index == 1) then AddonNS.emptyItemButton = nil end -- reset itemButom
     if (itemButton) then
@@ -106,7 +87,7 @@ local function newIterator(container, index)
         local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING;
         container.MyBags.rows = 0;
         container.MyBags.height = 0;
-        categoryPositions = {};
+        container.MyBags.categoryPositions = {};
         local function placeItemsInGrid(categoriesObj, columnStartX)
             local currentRow = {}
             local itemPlaceholder = AddonNS.itemButtonPlaceholder;
@@ -165,7 +146,7 @@ local function newIterator(container, index)
                         )
                     )
                     and (AddonNS.Const.ITEMS_PER_ROW - #currentRow - categoryItemsCount) or 0
-                table.insert(categoryPositions,
+                table.insert(container.MyBags.categoryPositions,
                     {
                         category = categoryObj.category,
                         x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
@@ -200,6 +181,7 @@ local function newIterator(container, index)
         end
 
         -- Calculate positions for each column
+        local categoryAssignments = {}
         categoryAssignments = AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems) -- todo: this object is quite weird. Why is it a local global used among two functions :/
 
 
@@ -215,32 +197,3 @@ end
 function AddonNS.newEnumerateValidItems(container)
     return newIterator, container, 0;
 end
-
-container.GetInitialItemAnchor = extend(container.GetInitialItemAnchor,
-    function(f, ...)
-        AddonNS.printDebug("called anchor again?");
-        local anchor = f(...);
-
-        container:UpdateFrameSize();
-
-        local yFrameOffset = container:CalculateHeight() - container:GetPaddingHeight() -
-            container:CalculateExtraHeight() + ITEM_SPACING + container:CalculateHeightForCategoriesTitles();
-        local point, relativeTo, relativePoint, x, y = anchor:Get();
-        anchor:Set("TOPLEFT", relativeTo, "TOPLEFT", 0, 0);
-        AddonNS.printDebug("Anchor", x, y)
-
-        anchor.SetPointWithExtraOffset = extend(anchor.SetPointWithExtraOffset,
-            function(f, self, possibleItem, clearAllPoints, extraOffsetX, extraOffsetY)
-                if (possibleItem.ItemCategory and not possibleItem.ItemCategory.folded) then
-                    local newXOffset = positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].x;
-                    local newYOffset = -positionsInBags[possibleItem:GetBagID()][possibleItem:GetID()].y + yFrameOffset;
-                    possibleItem:Show();
-                    return f(self, possibleItem, clearAllPoints, newXOffset, newYOffset);
-                end
-                possibleItem:Hide();
-                return f(self, possibleItem, clearAllPoints, extraOffsetX, extraOffsetY);
-            end);
-        AddonNS.gui:RegenerateCategories(yFrameOffset, categoryPositions);
-
-        return anchor;
-    end);
