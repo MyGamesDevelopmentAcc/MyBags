@@ -1,8 +1,8 @@
 local addonName, AddonNS = ...
 
-FrameScaleOverride = {};
+FrameParametersOverride = {};
 
-function FrameScaleOverride:OverrideScale(frame, ignoreFile)
+function FrameParametersOverride:OverrideScale(frame, ignoreFile)
     local oldSetScale = frame.SetScale;
     function frame:SetScale(scale)
         local stack = debugstack(2, 1, 0) -- Skip 2 levels to get the caller's stack trace
@@ -14,4 +14,4 @@ function FrameScaleOverride:OverrideScale(frame, ignoreFile)
     end
 end
 
-FrameScaleOverride:OverrideScale(ContainerFrameCombinedBags, "ContainerFrame.lua")
+FrameParametersOverride:OverrideScale(ContainerFrameCombinedBags, "ContainerFrame.lua")

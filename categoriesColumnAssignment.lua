@@ -51,7 +51,7 @@ function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems)
         else
             while #items > 0 do
                 local itemsBatch = {}
-                if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then
+                if columnSum[column] + #items > MAX_ITEMS_PER_COLUMN then -- todo-1
                     local itemsToFit = MAX_ITEMS_PER_COLUMN - columnSum[column]
                     itemsBatch = items;
                     items = {};
