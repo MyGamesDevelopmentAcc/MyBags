@@ -9,13 +9,18 @@ C_NewItems = {
     removedSlot = slotIndex
   end,
   IsNewItem = function()
-    return false
+    return true
   end,
   ClearAll = function() end,
 }
 
 local registeredCategorizer = nil
 local addonEnv = {
+  NewItemsSettings = {
+    IsEnabled = function()
+      return true
+    end,
+  },
   Const = {
     Events = {
       CATEGORIZER_CATEGORIES_UPDATED = "CATEGORIZER_CATEGORIES_UPDATED",
@@ -49,6 +54,18 @@ local fakeButton = {
   GetID = function() return 11 end,
 }
 
+local categorized = registeredCategorizer:Categorize(19019, fakeButton)
+assert(categorized == newCategory, "Categorize returns new category when enabled and Blizzard marks item new")
+
+addonEnv.NewItemsSettings.IsEnabled = function()
+  return false
+end
+local disabledCategorized = registeredCategorizer:Categorize(19019, fakeButton)
+assert(disabledCategorized == nil, "Categorize returns nil when new categorizer is disabled")
+
+addonEnv.NewItemsSettings.IsEnabled = function()
+  return true
+end
 newCategory:OnItemUnassigned(19019, {
   pickedItemButton = fakeButton,
 })

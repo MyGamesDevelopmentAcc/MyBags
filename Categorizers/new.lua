@@ -41,6 +41,9 @@ function NewItemCategorizer:GetAlwaysVisibleCategories()
 end
 
 function NewItemCategorizer:Categorize(itemID, itemButton)
+    if not AddonNS.NewItemsSettings:IsEnabled() then
+        return nil
+    end
     local containerIndex = itemButton:GetBagID()
     local slotIndex = itemButton:GetID()
     local isNew = C_NewItems.IsNewItem(containerIndex, slotIndex)

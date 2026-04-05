@@ -2,6 +2,8 @@
 
 This file tracks completed user-facing work.
 
+- 2026-04-05 [Tweak] Added a settings toggle to disable the built-in `New Items` categorizer so new items no longer match that category when turned off.
+
 ## 12.0.1-3.34-alpha - 2026-03-13
 
 - 2026-03-17 [Bugfix] Fixed filtered bag and bank relayouts pushing the inventory or bank frame partially off-screen while search was active.

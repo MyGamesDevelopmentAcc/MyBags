@@ -1,6 +1,7 @@
 local addonName, AddonNS = ...
 
-local SETTINGS_VARIABLE = "MYBAGS_TOOLTIP_MODE"
+local TOOLTIP_MODE_SETTINGS_VARIABLE = "MYBAGS_TOOLTIP_MODE"
+local NEW_ITEMS_CATEGORIZER_SETTINGS_VARIABLE = "MYBAGS_NEW_ITEMS_CATEGORIZER_ENABLED"
 local registered = false
 
 local function registerAddonSettings()
@@ -12,6 +13,9 @@ local function registerAddonSettings()
     end
     if not AddonNS.TooltipSettings then
         error("TooltipSettings missing")
+    end
+    if not AddonNS.NewItemsSettings then
+        error("NewItemsSettings missing")
     end
 
     local category = Settings.RegisterVerticalLayoutCategory("MyBags")
@@ -27,7 +31,7 @@ local function registerAddonSettings()
 
     local setting = Settings.RegisterProxySetting(
         category,
-        SETTINGS_VARIABLE,
+        TOOLTIP_MODE_SETTINGS_VARIABLE,
         Settings.VarType.String,
         "Item Tooltip Mode",
         AddonNS.TooltipSettings.MODE_DEFAULT,
@@ -44,6 +48,27 @@ local function registerAddonSettings()
     end
 
     Settings.CreateDropdown(category, setting, getOptions, "Control MyBags item tooltip additions.")
+
+    local function getNewItemsCategorizerEnabled()
+        return AddonNS.NewItemsSettings:IsEnabled()
+    end
+
+    local function setNewItemsCategorizerEnabled(value)
+        AddonNS.NewItemsSettings:SetEnabled(value)
+    end
+
+    local newItemsSetting = Settings.RegisterProxySetting(
+        category,
+        NEW_ITEMS_CATEGORIZER_SETTINGS_VARIABLE,
+        Settings.VarType.Boolean,
+        "Enable New Items categorizer",
+        true,
+        getNewItemsCategorizerEnabled,
+        setNewItemsCategorizerEnabled
+    )
+
+    Settings.CreateCheckbox(category, newItemsSetting,
+        "Disable this to stop the built-in New Items category from matching items.")
     Settings.RegisterAddOnCategory(category)
     registered = true
 end

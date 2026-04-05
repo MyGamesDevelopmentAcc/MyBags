@@ -1062,6 +1062,42 @@ run("tooltip mode persists across reload and prunes default value", function()
     end
 end)
 
+run("new items categorizer defaults to enabled when missing or invalid", function()
+    local ctx = harness.new()
+    assert_true(ctx.AddonNS.NewItemsSettings:IsEnabled(), "missing new items setting defaults to enabled")
+
+    local invalid = harness.new({
+        saved = {
+            settings = {
+                newItemsCategorizerEnabled = "invalid_value",
+            },
+        },
+    })
+    assert_true(invalid.AddonNS.NewItemsSettings:IsEnabled(), "invalid persisted new items setting normalizes to enabled")
+end)
+
+run("new items categorizer persists across reload and prunes enabled value", function()
+    local ctx = harness.new()
+    ctx.AddonNS.NewItemsSettings:SetEnabled(false)
+    assert_true(not ctx.AddonNS.NewItemsSettings:IsEnabled(), "new items categorizer disabled")
+    ctx:events():fire_game("PLAYER_LOGOUT")
+
+    local snapshot = ctx:snapshot()
+    assert_true(snapshot.settings ~= nil, "settings table persisted")
+    assert_true(snapshot.settings.newItemsCategorizerEnabled == false, "disabled new items categorizer persisted")
+
+    local reloaded = harness.new({ saved = snapshot })
+    assert_true(not reloaded.AddonNS.NewItemsSettings:IsEnabled(), "disabled new items categorizer survives reload")
+
+    reloaded.AddonNS.NewItemsSettings:SetEnabled(true)
+    reloaded:events():fire_game("PLAYER_LOGOUT")
+    local enabledSnapshot = reloaded:snapshot()
+    if enabledSnapshot.settings ~= nil then
+        assert_true(enabledSnapshot.settings.newItemsCategorizerEnabled == nil,
+            "enabled new items categorizer prunes persisted key")
+    end
+end)
+
 run("selected custom category prefix clears when selection is cleared", function()
     local ctx = harness.new()
     local category = ctx.AddonNS.CustomCategories:NewCategory("Selected")

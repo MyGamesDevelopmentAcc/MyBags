@@ -56,7 +56,7 @@ Here are few animations showcasing how easily you can do certain things. You can
 ## How it works
 
 1. Start with built-in categories, then drag categories/items to shape your layout.
-2. New items go to `New Items`; right-click its header to clear them back to normal categorization.
+2. New items go to `New Items`; right-click its header to clear them back to normal categorization. If you do not want that built-in category, you can disable it in `Settings -> AddOns -> MyBags`.
 3. Items fall back to `Unassigned` unless manually assigned or matched by a category query.
 4. Click the top-right cog to enter edit mode for category management:
    * add, delete, import, and export custom categories
@@ -120,6 +120,7 @@ Please create a list of categories to import:
 * Category headers can be collapsed/expanded.
 * Hold `Shift` on an item tooltip to inspect matched categories and query attributes.
 * Tooltip behavior can be changed in `Settings -> AddOns -> MyBags` (`Default`, `Shift only`, `Disabled`).
+* The built-in `New Items` categorizer can be disabled in `Settings -> AddOns -> MyBags`.
 * Item order stays as you define it inside categories.
 * Container free space is shown in the footer.
 * You can still switch between combined bags and separate bags.
