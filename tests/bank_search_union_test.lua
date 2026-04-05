@@ -100,22 +100,34 @@ run("evaluateSearchVisibility excludes when default and query both fail", functi
 end)
 
 run("applySearchUnionMatchState updates visible bank buttons with query-union matches", function()
-    local firstButtonMatchState = nil
-    local secondButtonMatchState = nil
+    local firstButtonIncludeInSearch = nil
+    local secondButtonIncludeInSearch = nil
     local panel = {
         EnumerateValidItems = function()
             local items = {
                 {
                     GetBagID = function() return 1 end,
                     GetID = function() return 1 end,
-                    SetMatchesSearch = function(_, value) firstButtonMatchState = value end,
+                    searchOverlay = {
+                        SetAlpha = function() end,
+                    },
+                    ItemContextOverlay = {
+                        SetAlpha = function() end,
+                    },
                 },
                 {
                     GetBagID = function() return 1 end,
                     GetID = function() return 2 end,
-                    SetMatchesSearch = function(_, value) secondButtonMatchState = value end,
+                    searchOverlay = {
+                        SetAlpha = function() end,
+                    },
+                    ItemContextOverlay = {
+                        SetAlpha = function() end,
+                    },
                 },
             }
+            firstButtonIncludeInSearch = items[1]
+            secondButtonIncludeInSearch = items[2]
             local index = 0
             return function()
                 index = index + 1
@@ -125,6 +137,6 @@ run("applySearchUnionMatchState updates visible bank buttons with query-union ma
     }
 
     hooks.ApplySearchUnionMatchState(panel, addonEnv.QueryCategories:CompileAdHoc("itemType = 42"))
-    assertEqual(firstButtonMatchState, true, "query-only match should be undimmed")
-    assertEqual(secondButtonMatchState, true, "non-matching item is also undimmed by design")
+    assertEqual(firstButtonIncludeInSearch._myBagsIncludeInSearch, true, "query-only match should be included")
+    assertEqual(secondButtonIncludeInSearch._myBagsIncludeInSearch, false, "non-matching item should stay excluded")
 end)

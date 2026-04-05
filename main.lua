@@ -454,6 +454,24 @@ local function evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo,
     return includeInSearch, queryMatch
 end
 
+local function setItemButtonSearchOverlayAlpha(itemButton, alpha)
+    if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
+        itemButton.searchOverlay:SetAlpha(alpha)
+    end
+    if itemButton.ItemContextOverlay and itemButton.ItemContextOverlay.SetAlpha then
+        itemButton.ItemContextOverlay:SetAlpha(alpha)
+    end
+end
+
+local function setMyBagsIncludeInSearch(itemButton, includeInSearch)
+    itemButton._myBagsIncludeInSearch = includeInSearch == true
+    if includeInSearch then
+        setItemButtonSearchOverlayAlpha(itemButton, 0)
+        return
+    end
+    setItemButtonSearchOverlayAlpha(itemButton, 1)
+end
+
 BagItemSearchBox:HookScript("OnEditFocusGained", function(searchBox)
     refreshSearchAnchorLockState(searchBox)
 end)
@@ -518,7 +536,7 @@ hooksecurefunc(container, "UpdateSearchResults", function()
         if type(defaultMatch) == "boolean" then
             itemButton._myBagsDefaultSearchMatch = defaultMatch
         end
-        itemButton:SetMatchesSearch(true)
+        setItemButtonSearchOverlayAlpha(itemButton, 0)
     end
 end)
 
@@ -564,6 +582,7 @@ local function newIterator(iteratorContainer, index)
         end
 
         itemButton.MyBagsScope = "bag"
+        setMyBagsIncludeInSearch(itemButton, false)
 
         -- [[ CATEGORISATION ]]
         local info = containerItemInfoCache:Get(itemButton:GetBagID(), itemButton:GetID());
@@ -583,7 +602,7 @@ local function newIterator(iteratorContainer, index)
                 AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, false, true)
             end
             if includeInSearch then
-                itemButton:SetMatchesSearch(true)
+                setMyBagsIncludeInSearch(itemButton, true)
                 itemButton._myBagsItemId = info.itemID
                 if not category then
                     category = resolveCachedOrComputeBagCategory(itemButton, info)

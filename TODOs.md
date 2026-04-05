@@ -6,7 +6,7 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
 
 ### Improtant
 
-- 🐞 There is some kind of tainting during bank usage. It is quite hard to grasp it currently. I have marked the places which cause it with "--TODO: BANK_TAINT"
+- 🐞 There is some kind of tainting during bank usage. `--TODO: BANK_TAINT` marks suspicious spots in `bankView.lua`. Current strongest finding: the taint disappears when MyBags stops generating its synthetic all-tabs Blizzard bank item-button set and reuses only Blizzard's selected-tab buttons. See `.agent/bank-taint-investigation-2026-04-05.md`.
 
    ```lua
    -- in bankView.lua  --TODO: BANK_TAINT marks lines which when commented out remove the taint that is currently caused by them, when in bank switiching between warband bank and normal bank ui. This leads to inability to use items in bags which have "Use:" in their tooltip. Weirdly opening the bank, without switching tabs, removes the taint and reenables the ability to easily use those items. Secondly the taint happens only after 2nd tab switch. Regardless if we have or have not closed the bank in the meantime. Why is it so?

@@ -16,7 +16,7 @@ local BankView = {
     refreshQueued = false,
     hooksInstalled = false,
     dataRetryCount = 0,
-    itemButtonsSignature = nil,
+    -- itemButtonsSignature = nil,
     searchSizeLockActive = false,
     searchLockedPanelWidth = nil,
     searchLockedPanelHeight = nil,
@@ -206,7 +206,12 @@ local function applyCachedIncludeInSearch(panel)
         if type(defaultMatch) == "boolean" then
             itemButton._myBagsDefaultSearchMatch = defaultMatch
         end
-        itemButton:SetMatchesSearch(true)
+        if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
+            itemButton.searchOverlay:SetAlpha(0)
+        end
+        if itemButton.ItemContextOverlay and itemButton.ItemContextOverlay.SetAlpha then
+            itemButton.ItemContextOverlay:SetAlpha(0)
+        end
     end
 end
 
@@ -737,6 +742,24 @@ local function evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo,
     return includeInSearch, queryMatch
 end
 
+local function setItemButtonSearchOverlayAlpha(itemButton, alpha)
+    if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
+        itemButton.searchOverlay:SetAlpha(alpha)
+    end
+    if itemButton.ItemContextOverlay and itemButton.ItemContextOverlay.SetAlpha then
+        itemButton.ItemContextOverlay:SetAlpha(alpha)
+    end
+end
+
+local function setMyBagsIncludeInSearch(itemButton, includeInSearch)
+    itemButton._myBagsIncludeInSearch = includeInSearch == true
+    if includeInSearch then
+        setItemButtonSearchOverlayAlpha(itemButton, 0)
+        return
+    end
+    setItemButtonSearchOverlayAlpha(itemButton, 1)
+end
+
 local function shouldRetryForMissingItemData(hasAnyButtons, hadAnyItemData, retryCount)
     return hasAnyButtons and (not hadAnyItemData) and retryCount < 6
 end
@@ -779,8 +802,8 @@ local function applySearchUnionMatchState(panel, searchEvaluator)
             local info = C_Container.GetContainerItemInfo(bagID, slotID)
             if info then
                 local defaultMatch = not info.isFiltered
-                evaluateSearchVisibility(defaultMatch, searchEvaluator, info, itemButton)
-                itemButton:SetMatchesSearch(true)
+                local includeInSearch = evaluateSearchVisibility(defaultMatch, searchEvaluator, info, itemButton)
+                setMyBagsIncludeInSearch(itemButton, includeInSearch)
             end
         end
     end
@@ -1664,6 +1687,7 @@ function BankView:Refresh(scope)
             itemButton:Refresh() --TODO: BANK_TAINT
         end
         itemButton.MyBagsScope = activeScope
+        setMyBagsIncludeInSearch(itemButton, false)
 
         itemButton.ItemCategory = nil
         local bagID, slotID = resolveBankButtonContainerSlot(itemButton)
@@ -1687,7 +1711,7 @@ function BankView:Refresh(scope)
                     AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, false, true)
                 end
                 if includeInSearch then
-                    itemButton:SetMatchesSearch(true) --TODO: BANK_TAINT
+                    setMyBagsIncludeInSearch(itemButton, true)
                     if not category then
                         category = resolveCachedOrComputeCategory(self, itemButton, info, activeScope)
                     end
