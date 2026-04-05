@@ -12,8 +12,6 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
    -- in bankView.lua  --TODO: BANK_TAINT marks lines which when commented out remove the taint that is currently caused by them, when in bank switiching between warband bank and normal bank ui. This leads to inability to use items in bags which have "Use:" in their tooltip. Weirdly opening the bank, without switching tabs, removes the taint and reenables the ability to easily use those items. Secondly the taint happens only after 2nd tab switch. Regardless if we have or have not closed the bank in the meantime. Why is it so?
    ```
 
-- 🐞 Equipment categories under some conditions seem to have positions reset in layout :(
-
 ### Normal
 
 - Add toy category. Prefer `C_ToyBox.GetToyInfo(itemID) ~= nil` or `TooltipInfo.GetToyByItemID(itemID) ~= nil` to detect toys.
@@ -50,6 +48,7 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
 - 2026-03-13 - Removed leftover runtime debug logs and profiling helpers from release code paths.
 - 2026-03-13 - Added `onUseDescription` query support using localized `Use:` tooltip text for custom-category matching.
 - 2026-03-17 - Fixed filtered bag and bank relayout so active search no longer shoves frames off-screen during item use or bank filtering.
+- 2026-04-05 - Fixed dynamic-category layout corruption by deduplicating per-scope layout ids with last-occurrence cleanup and stabilizing bag placement by category id on refresh/first load.
 
 ## Rejected
 

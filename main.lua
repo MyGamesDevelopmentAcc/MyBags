@@ -600,6 +600,9 @@ local function newIterator(iteratorContainer, index)
         local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING;
         container.MyBags.rows = 0;
         container.MyBags.height = 0;
+        for bagID in pairs(positionsInBags) do
+            positionsInBags[bagID] = nil
+        end
         container.MyBags.categoryPositions = {};
         local function placeItemsInGrid(categoriesObj, columnStartX)
             local isCategoriesConfigMode = AddonNS.BagViewState:IsCategoriesConfigMode()

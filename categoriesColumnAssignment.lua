@@ -117,13 +117,123 @@ local function appendToLayout(columnIndex, categoryIdValue, scope)
         return
     end
     local runtimeColumns = runtimeColumnsByScope[normalizedScope]
-    local column = runtimeColumns[columnIndex]
-    for _, existing in ipairs(column) do
-        if existing == id then
-            return
+    for _, column in ipairs(runtimeColumns) do
+        for _, existing in ipairs(column or {}) do
+            if existing == id then
+                return
+            end
         end
     end
+    local column = runtimeColumns[columnIndex]
     table.insert(column, id)
+end
+
+local function dedupeRuntimeColumns(scope)
+    local normalizedScope = getLayoutScope(scope)
+    ensureRuntimeColumns(normalizedScope)
+    local runtimeColumns = runtimeColumnsByScope[normalizedScope]
+    local seen = {}
+    local numColumns = getNumColumns(normalizedScope)
+    for columnIndex = numColumns, 1, -1 do
+        local column = runtimeColumns[columnIndex] or {}
+        local writeIndex = #column
+        for readIndex = #column, 1, -1 do
+            local id = column[readIndex]
+            if not seen[id] then
+                seen[id] = true
+                column[writeIndex] = id
+                writeIndex = writeIndex - 1
+            end
+        end
+        for index = 1, writeIndex do
+            column[index] = nil
+        end
+        runtimeColumns[columnIndex] = column
+    end
+end
+
+local function buildArrangedItemsById(arrangedItems)
+    local byId = {}
+    for category, items in pairs(arrangedItems) do
+        local id = category and category.GetId and category:GetId()
+        if id then
+            local entry = byId[id]
+            if entry == nil then
+                entry = {
+                    category = category,
+                    items = {},
+                }
+                byId[id] = entry
+            end
+            for index = 1, #(items or {}) do
+                table.insert(entry.items, items[index])
+            end
+        end
+    end
+    return byId
+end
+
+function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems, scope)
+    local normalizedScope = getLayoutScope(scope)
+    ensureRuntimeColumns(normalizedScope)
+    dedupeRuntimeColumns(normalizedScope)
+    local runtimeColumns = runtimeColumnsByScope[normalizedScope]
+    local constantCategories = AddonNS.Categories:GetConstantCategories(normalizedScope)
+    for _, category in ipairs(constantCategories) do
+        if not arrangedItems[category] then
+            arrangedItems[category] = {}
+        end
+    end
+
+    local arrangedItemsById = buildArrangedItemsById(arrangedItems)
+    local numColumns = getNumColumns(normalizedScope)
+    local categoryAssignments = {}
+    for index = 1, numColumns do
+        categoryAssignments[index] = {}
+    end
+    local knownIds = {}
+
+    for columnIndex = 1, numColumns do
+        local assignmentsForColumn = categoryAssignments[columnIndex]
+        local ids = runtimeColumns[columnIndex]
+        for _, id in ipairs(ids) do
+            local arrangedEntry = arrangedItemsById[id]
+            if arrangedEntry then
+                addCategoryToColumn(assignmentsForColumn, arrangedEntry.category, arrangedEntry.items, normalizedScope)
+                knownIds[id] = true
+            end
+        end
+    end
+
+    local unmatched = {}
+    for id, entry in pairs(arrangedItemsById) do
+        if not knownIds[id] then
+            table.insert(unmatched, { category = entry.category, items = entry.items, id = id })
+            knownIds[id] = true
+        end
+    end
+
+    table.sort(unmatched, function(left, right)
+        local leftName = left.category:GetName()
+        local rightName = right.category:GetName()
+        if leftName == nil then
+            return
+        end
+        if rightName == nil then
+            return true
+        end
+        return leftName < rightName
+    end)
+
+    local targetColumn = 1
+    for _, entry in ipairs(unmatched) do
+        addCategoryToColumn(categoryAssignments[targetColumn], entry.category, entry.items or {}, normalizedScope)
+        appendToLayout(targetColumn, entry.id, normalizedScope)
+        targetColumn = targetColumn % numColumns + 1
+    end
+
+    categoryAssignmentsByScope[normalizedScope] = categoryAssignments
+    return categoryAssignments
 end
 
 local function isLayoutEmpty(scope)
@@ -137,66 +247,6 @@ local function isLayoutEmpty(scope)
         end
     end
     return true
-end
-
-function AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems, scope)
-    local normalizedScope = getLayoutScope(scope)
-    ensureRuntimeColumns(normalizedScope)
-    local runtimeColumns = runtimeColumnsByScope[normalizedScope]
-    local constantCategories = AddonNS.Categories:GetConstantCategories(normalizedScope)
-    for _, category in ipairs(constantCategories) do
-        if not arrangedItems[category] then
-            arrangedItems[category] = {}
-        end
-    end
-
-    local numColumns = getNumColumns(normalizedScope)
-    local categoryAssignments = {}
-    for index = 1, numColumns do
-        categoryAssignments[index] = {}
-    end
-    local known = {}
-
-    for columnIndex = 1, numColumns do
-        local assignmentsForColumn = categoryAssignments[columnIndex]
-        local ids = runtimeColumns[columnIndex]
-        for _, id in ipairs(ids) do
-            local category = AddonNS.CategoryStore:Get(id)
-            if category and arrangedItems[category] then
-                addCategoryToColumn(assignmentsForColumn, category, arrangedItems[category], normalizedScope)
-                known[category] = true
-            end
-        end
-    end
-
-    local unmatched = {}
-    for category in pairs(arrangedItems) do
-        if not known[category] then
-            table.insert(unmatched, category)
-        end
-    end
-
-    table.sort(unmatched, function(left, right)
-        local leftName = left:GetName()
-        local rightName = right:GetName()
-        if leftName == nil then
-            return false
-        end
-        if rightName == nil then
-            return true
-        end
-        return leftName < rightName
-    end)
-
-    local targetColumn = 1
-    for _, category in ipairs(unmatched) do
-        addCategoryToColumn(categoryAssignments[targetColumn], category, arrangedItems[category] or {}, normalizedScope)
-        appendToLayout(targetColumn, category:GetId(), normalizedScope)
-        targetColumn = targetColumn % numColumns + 1
-    end
-
-    categoryAssignmentsByScope[normalizedScope] = categoryAssignments
-    return categoryAssignments
 end
 
 local function findCategoryPosition(categoryIdValue, scope)
@@ -257,6 +307,7 @@ local function categoryMoved(eventName, pickedCategory, targetCategory, moveTail
     for offset, id in ipairs(movedCategoryIds) do
         table.insert(targetColumnRef, targetRow + offset - 1, id)
     end
+    dedupeRuntimeColumns(normalizedScope)
 end
 
 local function categoryMovedToColumn(eventName, pickedCategory, columnIndex, moveTail, scope)
@@ -287,6 +338,7 @@ local function categoryMovedToColumn(eventName, pickedCategory, columnIndex, mov
     for _, id in ipairs(movedCategoryIds) do
         table.insert(runtimeColumns[columnIndex], id)
     end
+    dedupeRuntimeColumns(normalizedScope)
 end
 
 local function categoryDeleted(eventName, category, scope)
@@ -333,6 +385,7 @@ function AddonNS.Categories:SetColumnCount(columnCount, scope)
             runtimeColumns[columnIndex] = nil
         end
     end
+    dedupeRuntimeColumns(normalizedScope)
     persistRuntimeColumns(normalizedScope)
 end
 

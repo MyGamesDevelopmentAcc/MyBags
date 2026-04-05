@@ -250,18 +250,18 @@ end
 
 dedupe_columns_globally = function(columns, targetCount)
     local seen = {}
-    for columnIndex = 1, targetCount do
+    for columnIndex = targetCount, 1, -1 do
         local column = columns[columnIndex] or {}
-        local writeIndex = 1
-        for readIndex = 1, #column do
+        local writeIndex = #column
+        for readIndex = #column, 1, -1 do
             local id = column[readIndex]
             if not seen[id] then
                 seen[id] = true
                 column[writeIndex] = id
-                writeIndex = writeIndex + 1
+                writeIndex = writeIndex - 1
             end
         end
-        for idx = #column, writeIndex, -1 do
+        for idx = 1, writeIndex do
             column[idx] = nil
         end
         columns[columnIndex] = column

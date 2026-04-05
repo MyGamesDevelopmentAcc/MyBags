@@ -644,8 +644,8 @@ run("layout load normalizes duplicate category ids across columns", function()
     ctx:events():fire_game("PLAYER_LOGOUT")
 
     local columns = layout_columns(ctx:snapshot())
-    assert_equal({ "eq-1", "cus-1" }, columns[1] or {}, "first occurrences are preserved in first column")
-    assert_equal({}, columns[2] or {}, "duplicate ids are removed from later columns")
+    assert_equal({}, columns[1] or {}, "earlier duplicates are removed from prior columns")
+    assert_equal({ "cus-1", "eq-1" }, columns[2] or {}, "last occurrences are preserved in later columns")
     assert_equal({ "unassigned" }, columns[3] or {}, "unrelated ids are preserved")
 end)
 
@@ -675,8 +675,9 @@ run("set layout columns normalizes globally deduplicated ids", function()
     }, "bag")
 
     local columns = layout_columns(ctx:snapshot())
-    assert_equal({ "eq-7", "cus-2" }, columns[1] or {}, "first column keeps initial ordering")
-    assert_equal({ "new-singleton" }, columns[2] or {}, "later duplicates are removed while unique ids remain")
+    assert_equal({}, columns[1] or {}, "earlier duplicate entries are pruned from prior columns")
+    assert_equal({ "cus-2", "eq-7", "new-singleton" }, columns[2] or {},
+        "later column keeps the surviving duplicate ids and unique entries")
 end)
 
 run("empty layout bootstrap keeps round-robin placement for new categories", function()
@@ -711,6 +712,85 @@ run("empty layout bootstrap keeps round-robin placement for new categories", fun
     assert_true((columns[2] or {})[1] == catB:GetId(), "second unmatched category stays in second column on empty bootstrap")
     assert_true(count_layout_id(columns, catA:GetId()) == 1, "first category appears only once")
     assert_true(count_layout_id(columns, catB:GetId()) == 1, "second category appears only once")
+end)
+
+run("layout arrangement matches persisted ids even after wrapper refresh", function()
+    local ctx = harness.new({
+        saved = {
+            userCategories = {
+                schemaVersion = 2,
+                id = "cus",
+                name = "Custom",
+                nextId = 1,
+                categories = {
+                    ["1"] = { name = "KeepSeedOff", items = {} },
+                },
+            },
+        },
+    })
+    local category = ctx.AddonNS.CustomCategories:NewCategory("Refreshable")
+    ctx.AddonNS.Categories:ArrangeCategoriesIntoColumns({
+        [category] = {},
+    })
+
+    local staleWrapper = category
+    ctx.AddonNS.CustomCategories:RenameCategory(category, "RefreshableRenamed")
+
+    ctx.AddonNS.Categories:ArrangeCategoriesIntoColumns({
+        [staleWrapper] = {},
+    })
+    ctx:events():fire_game("PLAYER_LOGOUT")
+
+    local columns = layout_columns(ctx:snapshot())
+    assert_true(count_layout_id(columns, staleWrapper:GetId()) == 1,
+        "stale wrapper refresh does not duplicate category id in layout")
+end)
+
+run("layout arrangement merges item lists for refreshed wrappers with the same id", function()
+    local ctx = harness.new({
+        saved = {
+            userCategories = {
+                schemaVersion = 2,
+                id = "cus",
+                name = "Custom",
+                nextId = 1,
+                categories = {
+                    ["1"] = { name = "KeepSeedOff", items = {} },
+                },
+            },
+        },
+    })
+    local category = ctx.AddonNS.CustomCategories:NewCategory("RefreshableItems")
+    local staleWrapper = category
+    local freshWrapper = {
+        GetId = function()
+            return staleWrapper:GetId()
+        end,
+        GetName = function()
+            return staleWrapper:GetName()
+        end,
+    }
+
+    local assignments = ctx.AddonNS.Categories:ArrangeCategoriesIntoColumns({
+        [staleWrapper] = {
+            { _myBagsItemId = 1002 },
+        },
+        [freshWrapper] = {
+            { _myBagsItemId = 1001 },
+        },
+    })
+
+    local found = nil
+    for _, column in ipairs(assignments) do
+        for _, entry in ipairs(column) do
+            if entry.category:GetId() == staleWrapper:GetId() then
+                found = entry
+            end
+        end
+    end
+
+    assert_true(found ~= nil, "category with refreshed wrapper remains in arranged output")
+    assert_true(found.itemsCount == 2, "items from stale and refreshed wrappers are merged by id")
 end)
 
 run("custom category priority persists only for non-default overrides", function()
