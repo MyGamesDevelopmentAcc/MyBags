@@ -16,7 +16,6 @@ local BankView = {
     refreshQueued = false,
     hooksInstalled = false,
     dataRetryCount = 0,
-    -- itemButtonsSignature = nil,
     searchSizeLockActive = false,
     searchLockedPanelWidth = nil,
     searchLockedPanelHeight = nil,
@@ -52,6 +51,46 @@ local BANK_MAX_NUM_COLUMNS = 10
 local AUTO_DEPOSIT_BUTTON_WIDTH_SCALE = 0.7
 local calculateScaledDepositButtonWidth
 local applyScaledDepositButtonWidth
+
+
+local itemButtonPool = CreateFramePool("ItemButton", nil, "BankItemButtonTemplate");
+
+local function mergeIterators(iter1, state1, init1, iter2, state2, init2)
+    local currentIter = iter1
+    local currentState = state1
+    local currentVar = init1
+    local usingFirst = true
+
+    return function()
+        local value = currentIter(currentState, currentVar)
+        currentVar = value
+
+        if value ~= nil then
+            return value
+        end
+
+        if usingFirst then
+            usingFirst = false
+            currentIter = iter2
+            currentState = state2
+            currentVar = init2
+
+            return currentIter(currentState, currentVar)
+        end
+
+        return nil
+    end
+end
+
+local myEnumerateValidItemsFunction;
+local function myEnumerateValidItems()
+    -- if (myEnumerateValidItemsFunction == nil) then
+    local iter1, state1, init1 = BankPanel.itemButtonPool:EnumerateActive();
+    local iter2, state2, init2 = itemButtonPool:EnumerateActive();
+    myEnumerateValidItemsFunction = mergeIterators(iter1, state1, init1, iter2, state2, init2);
+    -- end
+    return myEnumerateValidItemsFunction;
+end
 
 local function getScopeForBankType(bankType)
     if bankType == Enum.BankType.Account then
@@ -148,60 +187,29 @@ local function shouldRefreshForBagUpdate(visibleTabIds, bagID)
     return visibleTabIds[bagID] == true
 end
 
-local function generateAllTabItemButtons(panel, activeBankType, tabIds)
-    panel.itemButtonPool:ReleaseAll()
+local function generateAllTabItemButtons(panel, tabIds)
+    itemButtonPool:ReleaseAll()
     for tabIndex = 1, #tabIds do
         local tabID = tabIds[tabIndex]
-        local slots = C_Container.GetContainerNumSlots(tabID)
-        if type(slots) == "number" and slots > 0 then
+        if (tabID ~= panel.selectedTabID) then
+            local slots = C_Container.GetContainerNumSlots(tabID)
             for containerSlotID = 1, slots do
-                local button = panel.itemButtonPool:Acquire()
-                button:Init(activeBankType, tabID, containerSlotID)
+                local button = itemButtonPool:Acquire()
+                button:Init(panel.bankType, tabID, containerSlotID)
                 button:Show()
             end
         end
     end
 end
 
-local function hasAnyActiveItemButtons(panel)
-    for _ in panel:EnumerateValidItems() do
-        return true
-    end
-    return false
-end
-
-local function countActiveItemButtons(panel)
-    local count = 0
-    for _ in panel:EnumerateValidItems() do
-        count = count + 1
-    end
-    return count
-end
-
-local function countExpectedButtonsForTabs(tabIds)
-    local expected = 0
-    for index = 1, #tabIds do
-        local tabID = tabIds[index]
-        local slotCount = C_Container.GetContainerNumSlots(tabID) or 0
-        if slotCount > 0 then
-            expected = expected + slotCount
-        end
-    end
-    return expected
-end
-
-local function buildItemButtonsSignature(activeBankType, tabIds)
-    local parts = { tostring(activeBankType) }
-    for index = 1, #tabIds do
-        local tabID = tabIds[index]
-        local slotCount = C_Container.GetContainerNumSlots(tabID) or 0
-        table.insert(parts, tostring(tabID) .. ":" .. tostring(slotCount))
-    end
-    return table.concat(parts, "|")
-end
-
 local function applyCachedIncludeInSearch(panel)
-    for itemButton in panel:EnumerateValidItems() do
+    for itemButton in itemButtonPool:EnumerateActive() do
+        local itemInfo = C_Container.GetContainerItemInfo(itemButton:GetBankTabID(), itemButton:GetContainerSlotID());
+        local isFiltered = itemInfo and itemInfo.isFiltered;
+        itemButton:SetMatchesSearch(not isFiltered);
+    end
+
+    for itemButton in myEnumerateValidItems() do
         local defaultMatch = itemButton:GetMatchesSearch()
         if type(defaultMatch) == "boolean" then
             itemButton._myBagsDefaultSearchMatch = defaultMatch
@@ -414,7 +422,7 @@ local function hideContentArea(self)
 end
 
 local function hideAllItemButtons(panel)
-    for itemButton in panel:EnumerateValidItems() do
+    for itemButton in myEnumerateValidItems() do
         itemButton:Hide()
     end
 end
@@ -551,7 +559,7 @@ local function getPanelHeightForContent(contentBottom)
 end
 
 local function getCurrentItemSize(panel)
-    for itemButton in panel:EnumerateValidItems() do
+    for itemButton in myEnumerateValidItems() do
         return itemButton:GetHeight() + ITEM_SPACING
     end
     return BANK_DEFAULT_ITEM_SIZE + ITEM_SPACING
@@ -624,7 +632,6 @@ local function refreshPositionsAndScale()
 end
 
 local function updateFrameSizeForContent(self, panel, contentBottom)
-    -- local previousPanelHeight = panel:GetHeight()
     local columnCount = AddonNS.CategoryStore:GetColumnCount(self.currentScope)
     local columnPixelWidth = self.columnPixelWidth
     local panelWidth = getPanelWidthForColumns(columnCount, columnPixelWidth)
@@ -641,7 +648,6 @@ local function updateFrameSizeForContent(self, panel, contentBottom)
     BankFrame:SetSize(panelWidth, panelHeight)
 
     refreshPositionsAndScale()
-    -- local heightGrew = previousPanelHeight and panelHeight > (previousPanelHeight + POSITION_UPDATE_HEIGHT_GROWTH_THRESHOLD)
 
 
     if self.needsInitialPositionUpdate and not self.initialPositionUpdateQueued then
@@ -792,22 +798,6 @@ local function invalidateCategorizationCacheVersion(self)
     self.categorizationVersion = self.categorizationVersion + 1
 end
 
-local function applySearchUnionMatchState(panel, searchEvaluator)
-    if not searchEvaluator then
-        return
-    end
-    for itemButton in panel:EnumerateValidItems() do
-        local bagID, slotID = resolveBankButtonContainerSlot(itemButton)
-        if bagID and slotID then
-            local info = C_Container.GetContainerItemInfo(bagID, slotID)
-            if info then
-                local defaultMatch = not info.isFiltered
-                local includeInSearch = evaluateSearchVisibility(defaultMatch, searchEvaluator, info, itemButton)
-                setMyBagsIncludeInSearch(itemButton, includeInSearch)
-            end
-        end
-    end
-end
 
 local function ensureDropAreaOverlay(self, index)
     if self.dropAreaOverlays[index] then
@@ -815,8 +805,12 @@ local function ensureDropAreaOverlay(self, index)
     end
 
     local overlay = CreateFrame("Frame", nil, self.contentFrame, "BackdropTemplate")
-    overlay:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeFile =
-    "Interface/Tooltips/UI-Tooltip-Border", edgeSize = 10 })
+    overlay:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile =
+        "Interface/Tooltips/UI-Tooltip-Border",
+        edgeSize = 10
+    })
     overlay:SetBackdropColor(0.22, 0.45, 0.95, 0.08)
     overlay:SetBackdropBorderColor(0.38, 0.62, 1, 0.28)
     overlay:EnableMouse(false)
@@ -1367,7 +1361,7 @@ local function placeItemsAndBuildHeaders(scope, categoryAssignments, itemSize)
                 width = itemSize * categoryWidthSlots,
                 height = CATEGORY_HEIGHT,
                 blockHeight = CATEGORY_HEIGHT +
-                ((not isHeaderOnly and math.ceil(itemsCount / ITEMS_PER_ROW) * itemSize) or 0),
+                    ((not isHeaderOnly and math.ceil(itemsCount / ITEMS_PER_ROW) * itemSize) or 0),
                 scope = scope,
             })
 
@@ -1485,7 +1479,7 @@ local function applyItemPositions(panel, parentFrame, positions)
         itemButton:Show()
     end
 
-    for itemButton in panel:EnumerateValidItems() do
+    for itemButton in myEnumerateValidItems() do
         if not positions[itemButton] then
             itemButton:Hide()
         end
@@ -1600,10 +1594,10 @@ local function renderHeaders(self, scope, panel, categoryPositions)
             dropFrameByCategoryId[categoryId] = dropFrame
 
             local label = categoryPosition.category:GetDisplayName(categoryPosition.itemsCount) or
-            categoryPosition.category:GetName()
+                categoryPosition.category:GetName()
             if AddonNS.Collapsed.isCollapsed(categoryPosition.category, scope) then
                 label = label ..
-                " (" .. categoryPosition.itemsCount .. ") |A:glues-characterSelect-icon-arrowDown:19:19:0:4|a"
+                    " (" .. categoryPosition.itemsCount .. ") |A:glues-characterSelect-icon-arrowDown:19:19:0:4|a"
             end
             frame:SetText(label)
             frame:Show()
@@ -1655,23 +1649,11 @@ function BankView:Refresh(scope)
     self.backgroundFrame:Show()
     refreshResizeHandle(self, panel)
     updateDropAreaOverlays(self, activeScope)
-    local itemButtonsSignature = buildItemButtonsSignature(activeBankType, tabIds)
-    local expectedButtons = countExpectedButtonsForTabs(tabIds)
-    local shouldRegenerateButtons =
-        self.itemButtonsSignature ~= itemButtonsSignature
-        or not hasAnyActiveItemButtons(panel)
-        or countActiveItemButtons(panel) ~= expectedButtons
-    if shouldRegenerateButtons then
-        generateAllTabItemButtons(panel, activeBankType, tabIds) --TODO: BANK_TAINT
-        self.itemButtonsSignature = itemButtonsSignature
-    end
     local searchText = BankItemSearchBox:GetText() or ""
     local searchActive = searchText ~= ""
-    local searchTextChanged = self.lastSearchText ~= searchText
     self.lastSearchText = searchText
     updateSearchSizeLock(self, panel, searchText)
     local searchEvaluator = AddonNS.QueryCategories:CompileAdHoc(searchText)
-    local shouldRefreshItemButtonVisuals = shouldRegenerateButtons or not searchTextChanged
 
     local arrangedItems = {}
     local firstItemButton = nil
@@ -1679,13 +1661,10 @@ function BankView:Refresh(scope)
     local hadAnyItemData = false
 
     AddonNS.emptyItemButton = nil
-    for itemButton in panel:EnumerateValidItems() do
+    for itemButton in myEnumerateValidItems() do
         hadAnyButtons = true
         ensureItemButtonBagMethods(itemButton)
         ensureItemButtonHooks(itemButton)
-        if shouldRefreshItemButtonVisuals then
-            itemButton:Refresh() --TODO: BANK_TAINT
-        end
         itemButton.MyBagsScope = activeScope
         setMyBagsIncludeInSearch(itemButton, false)
 
@@ -1783,7 +1762,7 @@ local function tryInstallHooks()
     BankFrame:HookScript("OnShow", function()
         BankView.needsInitialPositionUpdate = true
         BankView.initialPositionUpdateQueued = false
-        BankView:RefreshNow()
+        -- BankView:RefreshNow()
     end)
     BankFrame:HookScript("OnHide", function()
         hideHeaders(BankView)
@@ -1818,15 +1797,17 @@ local function tryInstallHooks()
     hooksecurefunc(BankPanel, "SelectTab", function()
         BankView:RefreshNow()
     end)
+
     hooksecurefunc(BankPanel, "GenerateItemSlotsForSelectedTab", function()
-        for itemButton in BankPanel:EnumerateValidItems() do
-            itemButton:Hide()
-        end
-        BankView:RefreshNow()
+        generateAllTabItemButtons(BankPanel, getPurchasedTabIdsForActiveType(BankPanel))
     end)
+
     hooksecurefunc(BankPanel, "UpdateSearchResults", function()
         applyCachedIncludeInSearch(BankPanel)
+
+        BankView:QueueRefresh(BankView.currentScope)
     end)
+
     hooksecurefunc(BankPanel, "Clean", function()
         BankView:QueueRefresh()
     end)
@@ -1846,11 +1827,7 @@ local function tryInstallHooks()
         end
     end)
 
-    AddonNS.Events:RegisterEvent("INVENTORY_SEARCH_UPDATE", function()
-        if BankFrame:IsShown() then
-            BankView:QueueRefresh(BankView.currentScope)
-        end
-    end)
+
 
     AddonNS.Events:RegisterCustomEvent(AddonNS.Const.Events.COLLAPSED_CHANGED, function(_, _, scope)
         if scope == BANK_CHARACTER_SCOPE or scope == BANK_ACCOUNT_SCOPE then
@@ -1904,18 +1881,13 @@ AddonNS.BankViewTestHooks = {
     BuildVisibleTabIds = buildVisibleTabIds,
     ShouldRefreshForBagUpdate = shouldRefreshForBagUpdate,
     GenerateAllTabItemButtons = generateAllTabItemButtons,
-    BuildItemButtonsSignature = buildItemButtonsSignature,
     ApplyCachedIncludeInSearch = applyCachedIncludeInSearch,
-    HasAnyActiveItemButtons = hasAnyActiveItemButtons,
-    CountActiveItemButtons = countActiveItemButtons,
-    CountExpectedButtonsForTabs = countExpectedButtonsForTabs,
     ShouldShowPurchaseTabButton = shouldShowPurchaseTabButton,
     GetBankCapacityState = function(tabIds)
         return AddonNS.GetBankCapacityState(tabIds)
     end,
     EvaluateSearchVisibility = evaluateSearchVisibility,
     ShouldRetryForMissingItemData = shouldRetryForMissingItemData,
-    ApplySearchUnionMatchState = applySearchUnionMatchState,
     ApplyBankScopeColumnCount = applyBankScopeColumnCount,
     ResolveTargetPanelSize = resolveTargetPanelSize,
     CalculateScaledDepositButtonWidth = calculateScaledDepositButtonWidth,
@@ -1929,14 +1901,14 @@ AddonNS.BankViewTestHooks = {
 
 AddonNS.Events:OnInitialize(function()
     tryInstallHooks()
-    if BankFrame_Open then
-        hooksecurefunc("BankFrame_Open", function()
-            tryInstallHooks()
-            BankView:RefreshNow()
-        end)
-    end
-    AddonNS.Events:RegisterEvent("BANKFRAME_OPENED", function()
-        tryInstallHooks()
-        BankView:RefreshNow()
-    end)
+    -- if BankFrame_Open then
+    --     hooksecurefunc("BankFrame_Open", function()
+    --         -- tryInstallHooks()
+    --         BankView:RefreshNow()
+    --     end)
+    -- end
+    -- AddonNS.Events:RegisterEvent("BANKFRAME_OPENED", function()
+    --     -- tryInstallHooks()
+    --     -- BankView:RefreshNow()
+    -- end)
 end)

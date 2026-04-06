@@ -6,11 +6,7 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
 
 ### Improtant
 
-- 🐞 There is some kind of tainting during bank usage. `--TODO: BANK_TAINT` marks suspicious spots in `bankView.lua`. Current strongest finding: the taint disappears when MyBags stops generating its synthetic all-tabs Blizzard bank item-button set and reuses only Blizzard's selected-tab buttons. See `.agent/bank-taint-investigation-2026-04-05.md`.
 
-   ```lua
-   -- in bankView.lua  --TODO: BANK_TAINT marks lines which when commented out remove the taint that is currently caused by them, when in bank switiching between warband bank and normal bank ui. This leads to inability to use items in bags which have "Use:" in their tooltip. Weirdly opening the bank, without switching tabs, removes the taint and reenables the ability to easily use those items. Secondly the taint happens only after 2nd tab switch. Regardless if we have or have not closed the bank in the meantime. Why is it so?
-   ```
 
 ### Normal
 
@@ -49,6 +45,11 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
 - 2026-03-13 - Added `onUseDescription` query support using localized `Use:` tooltip text for custom-category matching.
 - 2026-03-17 - Fixed filtered bag and bank relayout so active search no longer shoves frames off-screen during item use or bank filtering.
 - 2026-04-05 - Fixed dynamic-category layout corruption by deduplicating per-scope layout ids with last-occurrence cleanup and stabilizing bag placement by category id on refresh/first load.
+- 2026-04-06 - Hopefully fixed without introducing too many new bugs ;) 🐞 There is some kind of tainting during bank usage. `--TODO: BANK_TAINT` marks suspicious spots in `bankView.lua`. Current strongest finding: the taint disappears when MyBags stops generating its synthetic all-tabs Blizzard bank item-button set and reuses only Blizzard's selected-tab buttons. See `.agent/bank-taint-investigation-2026-04-05.md`.
+
+   ```lua
+   -- in bankView.lua  --TODO: BANK_TAINT marks lines which when commented out remove the taint that is currently caused by them, when in bank switiching between warband bank and normal bank ui. This leads to inability to use items in bags which have "Use:" in their tooltip. Weirdly opening the bank, without switching tabs, removes the taint and reenables the ability to easily use those items. Secondly the taint happens only after 2nd tab switch. Regardless if we have or have not closed the bank in the meantime. Why is it so?
+   ```
 
 ## Rejected
 
