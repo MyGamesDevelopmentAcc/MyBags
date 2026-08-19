@@ -333,7 +333,7 @@ function AddonNS.Events:BAG_UPDATE(event, bagID)
     invalidateBagCategorizationCacheVersion()
 
     if (container.MyBags.updateItemLayoutCalledAtLeastOnce) then -- todo: reading this after a while - what the hell is this :D once i know i have to add here proper comments lol
-        local newFreeBagSlots = CalculateTotalNumberOfFreeBagSlots()
+        local newFreeBagSlots = C_Container.CalculateTotalNumberOfFreeBagSlots()
 
         if newFreeBagSlots <= freeBagSlots and not lockedUpdates then
             queueContainerUpdateItemLayout();

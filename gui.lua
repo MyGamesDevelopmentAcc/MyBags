@@ -246,7 +246,7 @@ local function getCategoryHoverText(frame)
 end
 
 local function isHoveringCategoryTitle(frame)
-    return MouseIsOver(frame.fs)
+    return InputUtil.IsMouseOver(frame.fs)
 end
 
 local function findFocusedCategoryFrame(frame)

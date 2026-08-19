@@ -1,4 +1,4 @@
-## Interface: 120000, 120100
+## Interface: 120000, 120100, 121000
 ## Version: @project-version@
 ## DefaultState: Enabled
 
