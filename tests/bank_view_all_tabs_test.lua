@@ -51,14 +51,30 @@ _G.CreateFrame = function()
     return {}
 end
 
+local capturedItemButtonPool
+
 _G.CreateFramePool = function()
     local pool = {
         activeObjects = {},
+        nextAcquireOrder = 0,
     }
 
     function pool:Acquire()
         local object = {}
         self.activeObjects[object] = true
+        self.nextAcquireOrder = self.nextAcquireOrder + 1
+        object._acquireOrder = self.nextAcquireOrder
+
+        function object:Init(bankType, tabID, slotID)
+            self._bankType = bankType
+            self._tabID = tabID
+            self._slotID = slotID
+        end
+
+        function object:Show()
+            self._shown = true
+        end
+
         return object
     end
 
@@ -70,6 +86,7 @@ _G.CreateFramePool = function()
         return next, self.activeObjects, nil
     end
 
+    capturedItemButtonPool = capturedItemButtonPool or pool
     return pool
 end
 
@@ -234,85 +251,51 @@ run("ShouldRefreshForBagUpdate refreshes for nil and visible tab IDs only", func
     assertTrue(not hooks.ShouldRefreshForBagUpdate(visible, 5), "non-visible tab should not refresh")
 end)
 
-run("GenerateAllTabItemButtons creates buttons for all slots from all tabs", function()
+run("GenerateAllTabItemButtons creates buttons for every slot on non-selected tabs", function()
+    local panel = { bankType = Enum.BankType.Character, selectedTabID = 20 }
+
+    hooks.GenerateAllTabItemButtons(panel, { 10, 20 })
+
     local inits = {}
-    local acquireCount = 0
-    local releaseCount = 0
-    local panel = {
-        itemButtonPool = {
-            ReleaseAll = function()
-                releaseCount = releaseCount + 1
-            end,
-            Acquire = function()
-                acquireCount = acquireCount + 1
-                return {
-                    Init = function(_, bankType, tabID, slotID)
-                        table.insert(inits, { bankType = bankType, tabID = tabID, slotID = slotID })
-                    end,
-                    Show = function() end,
-                }
-            end,
-        },
-    }
+    for button in capturedItemButtonPool:EnumerateActive() do
+        table.insert(inits, button)
+    end
+    table.sort(inits, function(a, b) return a._acquireOrder < b._acquireOrder end)
 
-    hooks.GenerateAllTabItemButtons(panel, Enum.BankType.Character, { 10, 20 })
-    assertEqual(releaseCount, 1, "pool should be reset once")
-    assertEqual(acquireCount, 3, "should acquire one button per slot across all tabs")
-    assertEqual(inits[1].tabID, 10, "first init tabID")
-    assertEqual(inits[1].slotID, 1, "first init slot")
-    assertEqual(inits[2].slotID, 2, "second init slot in first tab")
-    assertEqual(inits[3].tabID, 20, "third init tabID")
-    assertEqual(inits[3].slotID, 1, "first slot in second tab")
-    assertEqual(inits[3].bankType, Enum.BankType.Character, "active bank type should be forwarded")
+    assertEqual(#inits, 2, "only slots from the non-selected tab should be initialized")
+    assertEqual(inits[1]._tabID, 10, "first init tabID")
+    assertEqual(inits[1]._slotID, 1, "first init slot")
+    assertEqual(inits[2]._tabID, 10, "second init tabID")
+    assertEqual(inits[2]._slotID, 2, "second init slot")
+    assertEqual(inits[1]._bankType, Enum.BankType.Character, "active bank type should be forwarded")
+    assertTrue(inits[1]._shown, "button should be shown")
+    assertTrue(inits[2]._shown, "button should be shown")
 end)
 
-run("BuildItemButtonsSignature includes bank type and per-tab slot counts", function()
-    local signature = hooks.BuildItemButtonsSignature(Enum.BankType.Character, { 10, 20 })
-    assertEqual(signature, "1|10:2|20:1", "signature should include active type and tab:slot pairs")
+run("GenerateAllTabItemButtons skips the currently selected tab entirely", function()
+    local panel = { bankType = Enum.BankType.Account, selectedTabID = 10 }
+
+    hooks.GenerateAllTabItemButtons(panel, { 10 })
+
+    local count = 0
+    for _ in capturedItemButtonPool:EnumerateActive() do
+        count = count + 1
+    end
+    assertEqual(count, 0, "the selected tab's slots should not get addon-managed buttons")
 end)
 
-run("HasAnyActiveItemButtons reports whether enumeration has entries", function()
-    local emptyPanel = {
-        EnumerateValidItems = function()
-            return function()
-                return nil
-            end
-        end,
-    }
-    local populatedPanel = {
-        EnumerateValidItems = function()
-            local done = false
-            return function()
-                if done then
-                    return nil
-                end
-                done = true
-                return {}
-            end
-        end,
-    }
-    assertTrue(not hooks.HasAnyActiveItemButtons(emptyPanel), "empty enumeration should report false")
-    assertTrue(hooks.HasAnyActiveItemButtons(populatedPanel), "non-empty enumeration should report true")
-end)
+run("GenerateAllTabItemButtons resets the pool before acquiring new buttons", function()
+    local releaseCalls = 0
+    local originalReleaseAll = capturedItemButtonPool.ReleaseAll
+    capturedItemButtonPool.ReleaseAll = function(self)
+        releaseCalls = releaseCalls + 1
+        originalReleaseAll(self)
+    end
 
-run("CountActiveItemButtons counts all enumerated buttons", function()
-    local panel = {
-        EnumerateValidItems = function()
-            local index = 0
-            return function()
-                index = index + 1
-                if index <= 3 then
-                    return {}
-                end
-                return nil
-            end
-        end,
-    }
-    assertEqual(hooks.CountActiveItemButtons(panel), 3, "active button count should match enumeration size")
-end)
+    hooks.GenerateAllTabItemButtons({ bankType = Enum.BankType.Character, selectedTabID = nil }, { 10 })
 
-run("CountExpectedButtonsForTabs sums slots across all tabs", function()
-    assertEqual(hooks.CountExpectedButtonsForTabs({ 10, 20 }), 3, "expected buttons should sum all visible tab slots")
+    capturedItemButtonPool.ReleaseAll = originalReleaseAll
+    assertEqual(releaseCalls, 1, "pool should be released exactly once")
 end)
 
 run("ShouldShowPurchaseTabButton is true only when purchase is possible", function()
