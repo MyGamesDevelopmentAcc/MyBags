@@ -751,6 +751,17 @@ local function evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo,
     return includeInSearch, queryMatch
 end
 
+local function resolveIncludeInSearch(itemButton, itemInfo, searchActive, searchEvaluator)
+    local cachedDefaultMatch = itemButton._myBagsDefaultSearchMatch
+    local defaultMatch = true
+    if searchActive and type(cachedDefaultMatch) == "boolean" then
+        defaultMatch = cachedDefaultMatch
+    elseif searchActive then
+        defaultMatch = not itemInfo.isFiltered
+    end
+    return evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo, itemButton)
+end
+
 local function setItemButtonSearchOverlayAlpha(itemButton, alpha)
     if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
         itemButton.searchOverlay:SetAlpha(alpha)
@@ -1677,14 +1688,7 @@ function BankView:Refresh(scope)
             local info = containerItemInfoCache:Get(bagID, slotID)
             if info then
                 hadAnyItemData = true
-                local cachedDefaultMatch = itemButton._myBagsDefaultSearchMatch
-                local defaultMatch = true
-                if searchActive and type(cachedDefaultMatch) == "boolean" then
-                    defaultMatch = cachedDefaultMatch
-                elseif searchActive then
-                    defaultMatch = not info.isFiltered
-                end
-                local includeInSearch = evaluateSearchVisibility(defaultMatch, searchEvaluator, info, itemButton)
+                local includeInSearch = resolveIncludeInSearch(itemButton, info, searchActive, searchEvaluator)
                 itemButton._myBagsItemId = info.itemID
                 local category = nil
                 if searchActive then
@@ -1891,6 +1895,7 @@ AddonNS.BankViewTestHooks = {
         return AddonNS.GetBankCapacityState(tabIds)
     end,
     EvaluateSearchVisibility = evaluateSearchVisibility,
+    ResolveIncludeInSearch = resolveIncludeInSearch,
     ShouldRetryForMissingItemData = shouldRetryForMissingItemData,
     ApplyBankScopeColumnCount = applyBankScopeColumnCount,
     ResolveTargetPanelSize = resolveTargetPanelSize,

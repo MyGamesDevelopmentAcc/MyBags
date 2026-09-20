@@ -121,44 +121,36 @@ run("evaluateSearchVisibility excludes when default and query both fail", functi
     assertEqual(queryMatch, false, "query match should be false when evaluator fails")
 end)
 
-run("applySearchUnionMatchState updates visible bank buttons with query-union matches", function()
-    local firstButtonIncludeInSearch = nil
-    local secondButtonIncludeInSearch = nil
-    local panel = {
-        EnumerateValidItems = function()
-            local items = {
-                {
-                    GetBagID = function() return 1 end,
-                    GetID = function() return 1 end,
-                    searchOverlay = {
-                        SetAlpha = function() end,
-                    },
-                    ItemContextOverlay = {
-                        SetAlpha = function() end,
-                    },
-                },
-                {
-                    GetBagID = function() return 1 end,
-                    GetID = function() return 2 end,
-                    searchOverlay = {
-                        SetAlpha = function() end,
-                    },
-                    ItemContextOverlay = {
-                        SetAlpha = function() end,
-                    },
-                },
-            }
-            firstButtonIncludeInSearch = items[1]
-            secondButtonIncludeInSearch = items[2]
-            local index = 0
-            return function()
-                index = index + 1
-                return items[index]
-            end
-        end,
-    }
+run("resolveIncludeInSearch keeps default matches when search is inactive", function()
+    local itemButton = {}
+    local includeInSearch, queryMatch = hooks.ResolveIncludeInSearch(itemButton, { itemID = 7, isFiltered = true }, false, nil)
+    assertEqual(includeInSearch, true, "item should default-match when search is inactive")
+    assertEqual(queryMatch, false, "there is no query match without an active search")
+end)
 
-    hooks.ApplySearchUnionMatchState(panel, addonEnv.QueryCategories:CompileAdHoc("itemType = 42"))
-    assertEqual(firstButtonIncludeInSearch._myBagsIncludeInSearch, true, "query-only match should be included")
-    assertEqual(secondButtonIncludeInSearch._myBagsIncludeInSearch, false, "non-matching item should stay excluded")
+run("resolveIncludeInSearch honors a cached default search match", function()
+    local itemButton = { _myBagsDefaultSearchMatch = false }
+    local includeInSearch = hooks.ResolveIncludeInSearch(itemButton, { itemID = 9, isFiltered = false }, true, nil)
+    assertEqual(includeInSearch, false, "cached default match should be used instead of recomputing from isFiltered")
+end)
+
+run("resolveIncludeInSearch falls back to isFiltered when no cached default match exists", function()
+    local itemButton = {}
+    local includeInSearch = hooks.ResolveIncludeInSearch(itemButton, { itemID = 9, isFiltered = true }, true, nil)
+    assertEqual(includeInSearch, false, "filtered item without a cached default should not default-match")
+end)
+
+run("resolveIncludeInSearch includes query-union matches for a filtered item", function()
+    local itemButton = { _myBagsDefaultSearchMatch = false }
+    local evaluator = addonEnv.QueryCategories:CompileAdHoc("itemType = 42")
+    local includeInSearch, queryMatch = hooks.ResolveIncludeInSearch(itemButton, { itemID = 42, itemType = 42, isFiltered = true }, true, evaluator)
+    assertEqual(includeInSearch, true, "query-only match should be included")
+    assertEqual(queryMatch, true, "query-only match should mark query match")
+end)
+
+run("resolveIncludeInSearch excludes a filtered item that fails the query", function()
+    local itemButton = { _myBagsDefaultSearchMatch = false }
+    local evaluator = addonEnv.QueryCategories:CompileAdHoc("itemType = 42")
+    local includeInSearch = hooks.ResolveIncludeInSearch(itemButton, { itemID = 9, itemType = 9, isFiltered = true }, true, evaluator)
+    assertEqual(includeInSearch, false, "item that fails both default and query should be excluded")
 end)
