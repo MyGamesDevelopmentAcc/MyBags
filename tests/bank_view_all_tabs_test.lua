@@ -570,3 +570,54 @@ run("GetBankCapacityState returns taken free and total slot counts", function()
     assertEqual(state.total, 4, "total slots should include all tabs")
     assertEqual(state.free, 2, "remaining slots should be computed")
 end)
+
+local function makeSetIterator(values)
+    local set = {}
+    for index = 1, #values do
+        set[values[index]] = true
+    end
+    return next, set, nil
+end
+
+local function collectMerged(firstValues, secondValues)
+    local iter1, state1, init1 = makeSetIterator(firstValues)
+    local iter2, state2, init2 = makeSetIterator(secondValues)
+    local iterator = hooks.MergeIterators(iter1, state1, init1, iter2, state2, init2)
+
+    local seenCounts = {}
+    local order = {}
+    for value in iterator do
+        seenCounts[value] = (seenCounts[value] or 0) + 1
+        table.insert(order, value)
+    end
+    return seenCounts, order
+end
+
+run("MergeIterators yields every value from both iterators exactly once", function()
+    local first = { "bank-1", "bank-2", "bank-3" }
+    local second = { "all-tabs-1", "all-tabs-2" }
+    local seenCounts, order = collectMerged(first, second)
+
+    assertEqual(#order, #first + #second, "merged iteration should visit each button once")
+    for index = 1, #first do
+        assertEqual(seenCounts[first[index]], 1, "first iterator value " .. first[index] .. " should appear once")
+    end
+    for index = 1, #second do
+        assertEqual(seenCounts[second[index]], 1, "second iterator value " .. second[index] .. " should appear once")
+    end
+end)
+
+run("MergeIterators does not repeat the first value of the second iterator", function()
+    local seenCounts, order = collectMerged({}, { "all-tabs-1", "all-tabs-2" })
+
+    assertEqual(#order, 2, "only the second iterator values should be visited")
+    assertEqual(seenCounts["all-tabs-1"], 1, "first value of the second iterator should not be repeated")
+    assertEqual(seenCounts["all-tabs-2"], 1, "second value of the second iterator should be visited")
+end)
+
+run("MergeIterators handles an empty second iterator", function()
+    local seenCounts, order = collectMerged({ "bank-1" }, {})
+
+    assertEqual(#order, 1, "only the first iterator values should be visited")
+    assertEqual(seenCounts["bank-1"], 1, "first iterator value should be visited once")
+end)

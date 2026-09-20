@@ -40,9 +40,11 @@ jobs:
 
       - name: Run tests
         run: |
-          lua tests/categories_test.lua
-          lua tests/Categorizers/query_test.lua
-          lua tests/integration/persistence/savedvariable_test.lua
+          set -euo pipefail
+          for test in $(find tests -name '*_test.lua' | sort); do
+            echo "== $test"
+            lua "$test"
+          done
 
       - name: Remove tests directory
         run: rm -rf tests

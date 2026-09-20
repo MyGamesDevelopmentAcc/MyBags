@@ -75,7 +75,10 @@ local function mergeIterators(iter1, state1, init1, iter2, state2, init2)
             currentState = state2
             currentVar = init2
 
-            return currentIter(currentState, currentVar)
+            value = currentIter(currentState, currentVar)
+            currentVar = value
+
+            return value
         end
 
         return nil
@@ -1877,6 +1880,7 @@ end
 
 AddonNS.BankView = BankView
 AddonNS.BankViewTestHooks = {
+    MergeIterators = mergeIterators,
     GetPurchasedTabIdsForActiveType = getPurchasedTabIdsForActiveType,
     BuildVisibleTabIds = buildVisibleTabIds,
     ShouldRefreshForBagUpdate = shouldRefreshForBagUpdate,

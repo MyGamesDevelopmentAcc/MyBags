@@ -2,6 +2,7 @@
 
 This file tracks completed user-facing work.
 
+- 2026-09-20 [Bugfix] Fixed the bank "all tabs" view enumerating one item button twice, which could misplace an item or report a wrong category slot count.
 - 2026-04-06 [Bugfix] Fixed tainting when switching tabs in bank - hopefully without too many new bugs :)
 - 2026-04-05 [Bugfix] Fixed duplicate dynamic category layout entries corrupting bag and bank column assignments; cleanup now keeps the furthest duplicate entry.
 - 2026-04-05 [Bugfix] Fixed a first-load bag-opening regression where categorized items could fail to receive icon positions and trigger an opening error.
