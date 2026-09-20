@@ -2,16 +2,15 @@ name: Package and release
 
 on:
   push:
+    branches:
+      - '**'
     tags:
       - '[0-9]*.[0-9]*.[0-9]*-*'
+  pull_request:
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-
-    env:
-      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
 
     steps:
 
@@ -20,12 +19,6 @@ jobs:
 
       - name: Install Lua
         run: sudo apt-get update && sudo apt-get install -y lua5.1
-        
-      - name: Rename .toc file
-        run: mv '!dev_MyBags.toc' MyBags.toc
-
-      - name: Add .toc file to Git
-        run: git add MyBags.toc
 
       - name: Generate query help lua
         run: lua tools/generate_query_help.lua
@@ -45,6 +38,26 @@ jobs:
             echo "== $test"
             lua "$test"
           done
+
+  release:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+
+    steps:
+
+      - name: Clone project
+        uses: actions/checkout@v3
+
+      - name: Rename .toc file
+        run: mv '!dev_MyBags.toc' MyBags.toc
+
+      - name: Add .toc file to Git
+        run: git add MyBags.toc
 
       - name: Remove tests directory
         run: rm -rf tests

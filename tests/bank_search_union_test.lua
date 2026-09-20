@@ -1,3 +1,25 @@
+_G.CreateFramePool = function()
+    local pool = {
+        activeObjects = {},
+    }
+
+    function pool:Acquire()
+        local object = {}
+        self.activeObjects[object] = true
+        return object
+    end
+
+    function pool:ReleaseAll()
+        self.activeObjects = {}
+    end
+
+    function pool:EnumerateActive()
+        return next, self.activeObjects, nil
+    end
+
+    return pool
+end
+
 local addonEnv = {
     Const = {
         ITEM_SPACING = 4,
