@@ -2,6 +2,8 @@
 
 This file tracks completed user-facing work.
 
+## 12.1.0-4.0-alpha - 2026-10-10
+
 - 2026-10-10 [Bugfix] Fixed bank opening and tab switching causing item use to be blocked.
 - 2026-10-10 [Bugfix] Restored bank eligibility darkening when opening or switching banks with bags already open.
 
