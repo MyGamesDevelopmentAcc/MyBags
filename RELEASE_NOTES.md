@@ -6,9 +6,9 @@
 
 ## Bug fixes
 
+- Fixed bank opening and tab switching causing item use to be blocked.
 - Restored darkening for items that cannot be deposited into the active bank, including when bags are already open.
 - Fixed the bank "all tabs" view processing one item button twice, which could misplace an item or make a category show a wrong slot count.
-- Fixed tainting when switching tabs in bank - hopefully without too many new bugs :)
 - Fixed category-layout corruption caused by duplicate dynamic category entries, and now clean up duplicated layout ids by keeping the furthest entry.
 - Fixed a first-load bag-opening regression where categorized items could fail to get icon positions and trigger a bag open error.
 - Fixed filtered bag and bank relayouts pushing the inventory or bank frame partially off-screen while search was active.

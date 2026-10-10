@@ -128,14 +128,24 @@ hooksecurefunc(ContainerFrameCombinedBags, "UpdateItemSlots", updateItemSlots)
 -- Workaround: Blizzard normally opens bags from BankFrame:OnShow after ShowUIPanel(BankFrame).
 -- Forcing OpenAllBags before BankFrame_Open changes that order so bag frames are already open
 -- before the bank frame runs its normal show flow, which avoids the observed taint path.
+-- The interaction manager captured the original opener before this addon loaded,
+-- so register this sequence there as well as replacing the global entry point.
 local oldBankFrame_Open = BankFrame_Open
 function BankFrame_Open()
     OpenAllBags(BankFrame)
     local searchText = BankItemSearchBox:GetText();
     BankItemSearchBox:SetText("");
-    oldBankFrame_Open()
+    securecallfunction(oldBankFrame_Open)
     BankItemSearchBox:SetText(searchText);
 end
+
+local bankInteractionFrameInfo = {
+    frame = "BankFrame",
+    showFunc = BankFrame_Open,
+}
+RegisterPlayerInteraction(Enum.PlayerInteractionType.Banker, bankInteractionFrameInfo)
+RegisterPlayerInteraction(Enum.PlayerInteractionType.CharacterBanker, bankInteractionFrameInfo)
+RegisterPlayerInteraction(Enum.PlayerInteractionType.AccountBanker, bankInteractionFrameInfo)
 
 -- need to overwrite this as it is used during enumeration of items in the bags so otherwise it would not incorporate reagentsContainer
 local function setBagSize(self)
