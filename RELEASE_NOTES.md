@@ -6,6 +6,7 @@
 
 ## Bug fixes
 
+- Restored darkening for items that cannot be deposited into the active bank, including when bags are already open.
 - Fixed the bank "all tabs" view processing one item button twice, which could misplace an item or make a category show a wrong slot count.
 - Fixed tainting when switching tabs in bank - hopefully without too many new bugs :)
 - Fixed category-layout corruption caused by duplicate dynamic category entries, and now clean up duplicated layout ids by keeping the furthest entry.

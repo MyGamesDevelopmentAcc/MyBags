@@ -217,12 +217,7 @@ local function applyCachedIncludeInSearch(panel)
         if type(defaultMatch) == "boolean" then
             itemButton._myBagsDefaultSearchMatch = defaultMatch
         end
-        if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
-            itemButton.searchOverlay:SetAlpha(0)
-        end
-        if itemButton.ItemContextOverlay and itemButton.ItemContextOverlay.SetAlpha then
-            itemButton.ItemContextOverlay:SetAlpha(0)
-        end
+        AddonNS.ItemButtonSearchOverlay:Apply(itemButton, true)
     end
 end
 
@@ -760,24 +755,6 @@ local function resolveIncludeInSearch(itemButton, itemInfo, searchActive, search
         defaultMatch = not itemInfo.isFiltered
     end
     return evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo, itemButton)
-end
-
-local function setItemButtonSearchOverlayAlpha(itemButton, alpha)
-    if itemButton.searchOverlay and itemButton.searchOverlay.SetAlpha then
-        itemButton.searchOverlay:SetAlpha(alpha)
-    end
-    if itemButton.ItemContextOverlay and itemButton.ItemContextOverlay.SetAlpha then
-        itemButton.ItemContextOverlay:SetAlpha(alpha)
-    end
-end
-
-local function setMyBagsIncludeInSearch(itemButton, includeInSearch)
-    itemButton._myBagsIncludeInSearch = includeInSearch == true
-    if includeInSearch then
-        setItemButtonSearchOverlayAlpha(itemButton, 0)
-        return
-    end
-    setItemButtonSearchOverlayAlpha(itemButton, 1)
 end
 
 local function shouldRetryForMissingItemData(hasAnyButtons, hadAnyItemData, retryCount)
@@ -1680,7 +1657,7 @@ function BankView:Refresh(scope)
         ensureItemButtonBagMethods(itemButton)
         ensureItemButtonHooks(itemButton)
         itemButton.MyBagsScope = activeScope
-        setMyBagsIncludeInSearch(itemButton, false)
+        AddonNS.ItemButtonSearchOverlay:Apply(itemButton, false)
 
         itemButton.ItemCategory = nil
         local bagID, slotID = resolveBankButtonContainerSlot(itemButton)
@@ -1697,7 +1674,7 @@ function BankView:Refresh(scope)
                     AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, false, true)
                 end
                 if includeInSearch then
-                    setMyBagsIncludeInSearch(itemButton, true)
+                    AddonNS.ItemButtonSearchOverlay:Apply(itemButton, true)
                     if not category then
                         category = resolveCachedOrComputeCategory(self, itemButton, info, activeScope)
                     end

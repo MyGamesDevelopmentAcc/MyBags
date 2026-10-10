@@ -28,6 +28,7 @@
 utils/orderedMap.lua
 utils/containerItemInfoCache.lua
 utils/searchCategoryBaseline.lua
+utils/itemButtonSearchOverlay.lua
 categoryStore.lua
 init.lua
 tooltipSettings.lua

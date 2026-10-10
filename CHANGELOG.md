@@ -2,6 +2,10 @@
 
 This file tracks completed user-facing work.
 
+- 2026-10-10 [Bugfix] Restored bank eligibility darkening when opening or switching banks with bags already open.
+
+## 12.1.0-3.38-alpha - 2026-09-20
+
 - 2026-09-20 [Bugfix] Fixed the bank "all tabs" view enumerating one item button twice, which could misplace an item or report a wrong category slot count.
 - 2026-04-06 [Bugfix] Fixed tainting when switching tabs in bank - hopefully without too many new bugs :)
 - 2026-04-05 [Bugfix] Fixed duplicate dynamic category layout entries corrupting bag and bank column assignments; cleanup now keeps the furthest duplicate entry.
