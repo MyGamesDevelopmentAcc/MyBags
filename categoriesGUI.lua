@@ -24,13 +24,10 @@ function AddonNS.createGUI()
     local BAG_SCOPE = "bag"
     local BANK_SCOPE = "bank-character"
     local WARBANK_SCOPE = "bank-account"
-    local COLOR_COG_NORMAL = { 0.78, 0.78, 0.78, 1 }
-    local COLOR_COG_EDIT = { 1, 0.85, 0.2, 1 }
     local QUERY_HELP_SIDE_LEFT = "left"
     local QUERY_HELP_SIDE_RIGHT = "right"
     local QUERY_HELP_OFFSET_X = 8
     local QUERY_HELP_TOOLTIP_TEXT = "Open query syntax and priority help"
-    local SCOPE_DISABLED_CHECKBOX_TOOLTIP_TEXT = "Show scope-disabled categories in edit mode"
 
     local isHelpPlateLoaded = C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded("Blizzard_HelpPlate")
     if not isHelpPlateLoaded then
@@ -310,57 +307,17 @@ function AddonNS.createGUI()
         showQueryHelpFrame(anchorFrame, preferredSide)
     end
 
-    local settingsButton = CreateFrame("Button", nil, container, "UIPanelIconDropdownButtonTemplate")
-    settingsButton:SetSize(20, 20)
+    function AddonNS.CategoriesGUI:RequestExitEditMode()
+        requestCloseCategoryEditor(function()
+            AddonNS.BagViewState:SetMode("normal")
+        end)
+    end
+
+    local bagControls = AddonNS.ContainerControls:Create(container, container, BagItemSearchBox, container, QUERY_HELP_SIDE_LEFT)
+    local settingsButton = bagControls.editButton
+    local bagSearchHelpButton = bagControls.helpButton
+    local bagSearchScopeDisabledCheckbox = bagControls.scopeDisabledCheckbox
     settingsButton:SetPoint("TOPRIGHT", container, "TOPRIGHT", -9, -34)
-    local bagSearchHelpButton = CreateFrame("Button", nil, container, "MainHelpPlateButton")
-    bagSearchHelpButton:SetSize(64, 64)
-    bagSearchHelpButton:SetScale(0.45)
-    bagSearchHelpButton.mainHelpPlateButtonTooltipText = QUERY_HELP_TOOLTIP_TEXT
-    bagSearchHelpButton:SetScript("OnClick", function()
-        toggleQueryHelpFrame(container, QUERY_HELP_SIDE_LEFT)
-    end)
-    bagSearchHelpButton:Hide()
-    local bagSearchScopeDisabledCheckbox = CreateFrame("CheckButton", nil, container, "ChatConfigCheckButtonTemplate")
-    bagSearchScopeDisabledCheckbox:SetSize(30, 30)
-    bagSearchScopeDisabledCheckbox:SetHitRectInsets(7, 7, 7, 7)
-    bagSearchScopeDisabledCheckbox.Text:SetText("")
-    bagSearchScopeDisabledCheckbox.Text:Hide()
-    bagSearchScopeDisabledCheckbox:SetScript("OnClick", function(self)
-        AddonNS.BagViewState:SetShowScopeDisabledInConfigMode(self:GetChecked() == true)
-        self:SetChecked(AddonNS.BagViewState:ShouldShowScopeDisabledInConfigMode())
-    end)
-    bagSearchScopeDisabledCheckbox:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText(SCOPE_DISABLED_CHECKBOX_TOOLTIP_TEXT)
-        GameTooltip:Show()
-    end)
-    bagSearchScopeDisabledCheckbox:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    bagSearchScopeDisabledCheckbox:Hide()
-
-    local function setCogColor(color)
-        settingsButton.Icon:SetVertexColor(color[1], color[2], color[3], color[4])
-    end
-
-    local function refreshEditModeVisuals()
-        if AddonNS.BagViewState:IsCategoriesConfigMode() then
-            setCogColor(COLOR_COG_EDIT)
-            return
-        end
-        setCogColor(COLOR_COG_NORMAL)
-    end
-
-    settingsButton:SetScript("OnClick", function(self, button)
-        if AddonNS.BagViewState:IsCategoriesConfigMode() then
-            requestCloseCategoryEditor(function()
-                AddonNS.BagViewState:SetMode("normal")
-            end)
-            return
-        end
-        AddonNS.BagViewState:SetMode("categories_config")
-    end)
 
     local function updateTopRightButtons()
         if container:IsShown() and BagItemAutoSortButton:GetParent() == container then
@@ -369,18 +326,9 @@ function AddonNS.createGUI()
             settingsButton:ClearAllPoints()
             settingsButton:SetPoint("TOPRIGHT", container, "TOPRIGHT", -9, -38)
         end
+        bagControls:Refresh()
         if container:IsShown() and BagItemSearchBox:IsShown() and BagItemSearchBox:GetParent() == container then
-            bagSearchHelpButton:ClearAllPoints()
-            bagSearchHelpButton:SetPoint("LEFT", BagItemSearchBox, "RIGHT", 4, 0)
             bagSearchHelpButton:Show()
-            if AddonNS.BagViewState:IsCategoriesConfigMode() then
-                bagSearchScopeDisabledCheckbox:ClearAllPoints()
-                bagSearchScopeDisabledCheckbox:SetPoint("RIGHT", settingsButton, "LEFT", -2, 0)
-                bagSearchScopeDisabledCheckbox:SetChecked(AddonNS.BagViewState:ShouldShowScopeDisabledInConfigMode())
-                bagSearchScopeDisabledCheckbox:Show()
-            else
-                bagSearchScopeDisabledCheckbox:Hide()
-            end
             return
         end
         bagSearchHelpButton:Hide()
@@ -407,14 +355,13 @@ function AddonNS.createGUI()
         StaticPopup_Hide("CATEGORY_EDITOR_UNSAVED_CHANGES_CONFIRM")
     end)
     AddonNS.Events:RegisterCustomEvent(AddonNS.Const.Events.BAG_VIEW_MODE_CHANGED, function()
-        refreshEditModeVisuals()
         updateTopRightButtons()
     end)
     AddonNS.Events:RegisterCustomEvent(AddonNS.Const.Events.SCOPE_DISABLED_CONFIG_VISIBILITY_CHANGED, function()
         updateTopRightButtons()
         AddonNS.QueueContainerUpdateItemLayout()
     end)
-    refreshEditModeVisuals()
+    updateTopRightButtons()
 
     local function getSelectedCategory()
         if not selectedCategoryId then

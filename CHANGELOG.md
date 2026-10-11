@@ -2,6 +2,9 @@
 
 This file tracks completed user-facing work.
 
+- [Bugfix] 2026-10-11 - Leaving bank edit mode now prompts to save or discard unsaved category edits.
+- [Tweak] 2026-10-11 - Made category drop targeting over category item areas consistent across bags, bank, and Warbank.
+
 ## 12.1.0-4.0-alpha - 2026-10-10
 
 - 2026-10-10 [Bugfix] Fixed bank opening and tab switching causing item use to be blocked.

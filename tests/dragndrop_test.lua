@@ -116,6 +116,8 @@ local addonEnv = {
     QueueContainerUpdateItemLayout = function() end,
 }
 
+assert(loadfile("categoryBackground.lua"))("MyBags", addonEnv)
+
 local dragAndDropChunk = assert(loadfile("dragndrop.lua"))
 dragAndDropChunk("MyBags", addonEnv)
 
@@ -193,6 +195,9 @@ local function frameForColumn(columnIndex)
     cursorX = (columnIndex - 1) * sectionWidth + sectionWidth / 2
     cursorY = 50
     return {
+        MyBagsResolveDropColumn = function(relativeX, scope, width)
+            return addonEnv.CategoryBackground:ResolveBagColumn(relativeX, scope, width)
+        end,
         GetEffectiveScale = function()
             return 1
         end,
@@ -210,6 +215,30 @@ local function frameForColumn(columnIndex)
         end,
     }
 end
+
+run("category mouse-up during category drag moves instead of collapsing", function()
+    resetDragTestState()
+    local source, target = category("cus-source"), category("cus-target")
+    addonEnv.DragAndDrop.categoryStartDrag({ ItemCategory = source, MyBagsScope = "bag" })
+    addonEnv.DragAndDrop.categoryOnMouseUp({ ItemCategory = target, MyBagsScope = "bag" }, "LeftButton")
+    assertEqual(lastEvent.name, "CATEGORY_MOVED", "category drag should move to hovered category")
+    assertEqual(lastEvent.args[2], "cus-target")
+    assertEqual(collapsedCalls, 0, "dropping a category must not collapse target")
+end)
+
+run("shared item hook registration delivers category drops once", function()
+    resetDragTestState()
+    local UI = assert(loadfile("tests/helpers/ui.lua"))()
+    local frame = UI.CreateFrame()
+    frame.ItemCategory, frame.MyBagsScope = category("cus-target"), "bag"
+    assertTrue(addonEnv.DragAndDrop:HookItemButton(frame), "first registration installs item hooks")
+    assertEqual(addonEnv.DragAndDrop:HookItemButton(frame), false, "repeated registration reuses hooks")
+    assertEqual(#frame.hooks.OnReceiveDrag, 1, "one drop must have one handler")
+    addonEnv.DragAndDrop.categoryStartDrag({ ItemCategory = category("cus-source"), MyBagsScope = "bag" })
+    frame:Fire("OnReceiveDrag")
+    assertEqual(lastEvent.name, "CATEGORY_MOVED")
+    assertEqual(lastEvent.args[2], "cus-target", "item surface retains category drop behavior")
+end)
 
 run("config mode custom category click collapses and does not select", function()
     collapsedCalls = 0
@@ -662,6 +691,9 @@ run("backgroundOnReceiveDrag places item into available empty slot for cross-sco
 
     addonEnv.DragAndDrop.itemStartDrag(sourceButton)
     addonEnv.DragAndDrop.backgroundOnReceiveDrag({
+        MyBagsResolveDropColumn = function(relativeX, scope, width)
+            return math.floor(relativeX * 3 / width) + 1
+        end,
         MyBagsScope = "bank-character",
         GetEffectiveScale = function()
             return 1

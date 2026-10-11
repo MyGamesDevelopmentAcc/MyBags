@@ -81,6 +81,9 @@ _G.C_Container = {
     end,
 }
 
+assert(loadfile("containerSearch.lua"))("MyBags", addonEnv)
+assert(loadfile("categoryLayout.lua"))("MyBags", addonEnv)
+
 local bankViewChunk = assert(loadfile("bankView.lua"))
 bankViewChunk("MyBags", addonEnv)
 local hooks = assert(addonEnv.BankViewTestHooks, "BankViewTestHooks should be exposed")

@@ -40,6 +40,7 @@ This file is the live backlog for MyBags. Keep it concise and outcome-focused.
 
 ## Done
 
+- 2026-10-11 - Unified category presentation across bags, bank, and Warbank to reduce duplicated maintenance and align edit-mode exits and category drop targeting.
 - 2026-03-07 - Re-scoped `TODOs.md` to a concise live backlog and moved the historical log to `.agent/todo-history.md`.
 - 2026-03-13 - Removed leftover runtime debug logs and profiling helpers from release code paths.
 - 2026-03-13 - Added `onUseDescription` query support using localized `Use:` tooltip text for custom-category matching.

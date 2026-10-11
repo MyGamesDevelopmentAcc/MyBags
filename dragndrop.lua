@@ -309,7 +309,7 @@ end
 
 function AddonNS.DragAndDrop.categoryOnMouseUp(self, button)
     local infoType = getCachedCursorInfo()
-    if infoType then
+    if infoType or isCategoryDragActive then
         if button == "LeftButton" then
             AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
         end
@@ -367,48 +367,12 @@ function AddonNS.DragAndDrop.categoryOnReceiveDrag(self)
     AddonNS.DragAndDrop.cleanUp()
 end
 
-local function GetMouseSectionRelativeToFrame(frame)
-    -- Get the cursor position in screen coordinates
-    local cursorX, cursorY = GetCursorPosition()
-
-    -- Get the frame's scale (useful if the frame or UI is scaled)
-    local scale = frame:GetEffectiveScale()
-
-    -- Convert cursor coordinates to UI scale
-    cursorX = cursorX / scale
-    cursorY = cursorY / scale
-
-    -- Get frame position and dimensions
-    local frameLeft = frame:GetLeft()
-    local frameBottom = frame:GetBottom()
-    local frameWidth = frame:GetWidth()
-    local frameHeight = frame:GetHeight()
-
-    -- Calculate the relative position within the frame
-    local relativeX = cursorX - frameLeft
-    local relativeY = cursorY - frameBottom
-
-    -- Ensure the coordinates are within the frame boundaries
-    if relativeX < 0 or relativeX > frameWidth or relativeY < 0 or relativeY > frameHeight then
-        return nil -- Cursor is outside the frame
-    end
-
-    -- Determine which section (column) the mouse is in
-
-    local scope = frame.MyBagsScope or getScopeFromButton(frame)
-    if scope ~= "bag" and AddonNS.BankView and AddonNS.BankView.ResolveDropColumn then
-        return AddonNS.BankView:ResolveDropColumn(relativeX, scope, frameWidth)
-    end
-    return math.floor(relativeX * AddonNS.CategoryStore:GetColumnCount(scope) / frameWidth) + 1
-end
-
-
-
 function AddonNS.DragAndDrop.backgroundOnReceiveDrag(self, mouseButtonName)
     if mouseButtonName and mouseButtonName ~= "LeftButton" then
         return
     end
-    local columnNo = GetMouseSectionRelativeToFrame(self)
+    local scope = getScopeFromButton(self)
+    local columnNo = AddonNS.CategoryBackground:GetDropColumn(self, scope, self.MyBagsResolveDropColumn)
     if (columnNo) then
         local infoType, itemID = getCachedCursorInfo()
         if (infoType == "merchant") then
@@ -463,4 +427,16 @@ function AddonNS.DragAndDrop.customCategoryGUIOnReceiveDrag(targetCategoryId)
     end
 
     AddonNS.DragAndDrop.cleanUp()
+end
+
+function AddonNS.DragAndDrop:HookItemButton(itemButton)
+    if itemButton.myBagAddonHooked then
+        return false
+    end
+    itemButton:HookScript("OnDragStart", self.itemStartDrag)
+    itemButton:HookScript("OnDragStop", self.itemStopDrag)
+    itemButton:HookScript("PreClick", self.itemOnClick)
+    itemButton:HookScript("OnReceiveDrag", self.itemOnReceiveDrag)
+    itemButton.myBagAddonHooked = true
+    return true
 end

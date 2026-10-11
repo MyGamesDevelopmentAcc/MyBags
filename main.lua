@@ -1,5 +1,4 @@
 local addonName, AddonNS = ...
-local isCollapsed = AddonNS.Collapsed.isCollapsed;
 
 local ITEM_SPACING = AddonNS.Const.ITEM_SPACING;
 local SEARCH_BOX_MAX_LETTERS = 255
@@ -19,30 +18,6 @@ local searchQueryState = {
 
 local function invalidateBagCategorizationCacheVersion()
     bagCategorizationVersion = bagCategorizationVersion + 1
-end
-
-local function buildBagCategoryCacheKey(itemButton, itemInfo)
-    return table.concat({
-        tostring(itemButton:GetBagID()),
-        tostring(itemButton:GetID()),
-        tostring(itemInfo.itemID),
-        tostring(itemInfo.stackCount),
-        tostring(itemInfo.quality),
-        tostring(itemInfo.hyperlink),
-        "bag",
-        tostring(bagCategorizationVersion),
-    }, ":")
-end
-
-local function resolveCachedOrComputeBagCategory(itemButton, itemInfo)
-    local cacheKey = buildBagCategoryCacheKey(itemButton, itemInfo)
-    if itemButton._myBagsCategoryCacheKey == cacheKey and itemButton._myBagsCategoryCacheValue then
-        return itemButton._myBagsCategoryCacheValue
-    end
-    local category = AddonNS.Categories:Categorize(itemInfo.itemID, itemButton)
-    itemButton._myBagsCategoryCacheKey = cacheKey
-    itemButton._myBagsCategoryCacheValue = category
-    return category
 end
 
 local function applySharedFrameScales()
@@ -444,16 +419,6 @@ local function refreshSearchQueryState(searchText)
     searchQueryState.evaluator = AddonNS.QueryCategories:CompileAdHoc(nextText)
 end
 
-local function evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo, itemButton)
-    local includeInSearch = defaultMatch
-    local queryMatch = false
-    if not defaultMatch and searchEvaluator then
-        local payload = AddonNS.CustomCategories:GetItemQueryPayload(itemInfo.itemID, itemButton, itemInfo)
-        includeInSearch, queryMatch = AddonNS.QueryCategories:EvaluateSearchUnion(defaultMatch, searchEvaluator, payload)
-    end
-    return includeInSearch, queryMatch
-end
-
 BagItemSearchBox:HookScript("OnEditFocusGained", function(searchBox)
     refreshSearchAnchorLockState(searchBox)
 end)
@@ -551,17 +516,7 @@ local function newIterator(iteratorContainer, index)
         bagSearchActive = bagSearchText ~= ""
     end
     if (itemButton) then
-        -- [[ checking hooks]]
-        if (not itemButton.myBagAddonHooked) then
-            -- TODO: prolly need to remove this hook when not merged bags are used to not destroy by accident proper categorisations?
-            -- todo: this should be done once during these creation steps, not here.
-
-            itemButton:HookScript("OnDragStart", AddonNS.DragAndDrop.itemStartDrag);
-            itemButton:HookScript("OnDragStop", AddonNS.DragAndDrop.itemStopDrag);
-            itemButton:HookScript("PreClick", AddonNS.DragAndDrop.itemOnClick);
-            itemButton:HookScript("OnReceiveDrag", AddonNS.DragAndDrop.itemOnReceiveDrag);
-            itemButton.myBagAddonHooked = true;
-        end
+        AddonNS.DragAndDrop:HookItemButton(itemButton)
 
         itemButton.MyBagsScope = "bag"
         AddonNS.ItemButtonSearchOverlay:Apply(itemButton, false)
@@ -570,24 +525,18 @@ local function newIterator(iteratorContainer, index)
         local info = containerItemInfoCache:Get(itemButton:GetBagID(), itemButton:GetID());
         itemButton.ItemCategory = nil;
         if (info) then
-            local capturedDefaultMatch = itemButton._myBagsDefaultSearchMatch
-            local defaultMatch = true
-            if bagSearchActive and type(capturedDefaultMatch) == "boolean" then
-                defaultMatch = capturedDefaultMatch
-            elseif bagSearchActive then
-                defaultMatch = not info.isFiltered
-            end
-            local includeInSearch = evaluateSearchVisibility(defaultMatch, searchQueryState.evaluator, info, itemButton)
+            local includeInSearch = AddonNS.ContainerSearch:ResolveIncludeInSearch(
+                itemButton, info, bagSearchActive, searchQueryState.evaluator)
             local category = nil
             if bagSearchActive then
-                category = resolveCachedOrComputeBagCategory(itemButton, info)
+                category = AddonNS.ContainerSearch:ResolveCategory(itemButton, info, "bag", bagCategorizationVersion)
                 AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, false, true)
             end
             if includeInSearch then
                 AddonNS.ItemButtonSearchOverlay:Apply(itemButton, true)
                 itemButton._myBagsItemId = info.itemID
                 if not category then
-                    category = resolveCachedOrComputeBagCategory(itemButton, info)
+                    category = AddonNS.ContainerSearch:ResolveCategory(itemButton, info, "bag", bagCategorizationVersion)
                 end
                 itemButton.ItemCategory = category
                 AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, true, bagSearchActive)
@@ -598,162 +547,21 @@ local function newIterator(iteratorContainer, index)
             AddonNS.emptyItemButton = itemButton;
         end
     else --[[ iterator finished so we can now tackle the list and calcualte the positions of items, as we now have all the items]]
-        local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING;
-        container.MyBags.rows = 0;
-        container.MyBags.height = 0;
+        local itemSize = container.Items[1]:GetHeight() + ITEM_SPACING
+        local assignments = AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems, "bag")
+        local positions, categoryPositions, height, rows = AddonNS.CategoryLayout:Calculate(
+            assignments, "bag", itemSize, 0, 0, 0)
         for bagID in pairs(positionsInBags) do
             positionsInBags[bagID] = nil
         end
-        container.MyBags.categoryPositions = {};
-        local function placeItemsInGrid(categoriesObj, columnStartX)
-            local isCategoriesConfigMode = AddonNS.BagViewState:IsCategoriesConfigMode()
-            local currentRow = {}
-            local itemPlaceholder = AddonNS.itemButtonPlaceholder;
-            local currentRowWidth = 0
-            local currentRowY = 0
-            local rowWithNewCategory = false;
-            local currentRowNo = 0;
-            local function flushCurrentRow()
-                local xOffset = 0
-                for _, item in ipairs(currentRow) do
-                    if item ~= itemPlaceholder then
-                        positionsInBags[item:GetBagID()] = positionsInBags[item:GetBagID()] or {};
-                        positionsInBags[item:GetBagID()][item:GetID()] = {
-                            id = item:GetID(),
-                            x = columnStartX + xOffset,
-                            y = currentRowY,
-                        };
-                    end
-                    xOffset = xOffset + itemSize
-                end
-                currentRow = {}
-                currentRowWidth = 0
-                currentRowY = currentRowY + itemSize
-                rowWithNewCategory = false;
-                currentRowNo = currentRowNo + 1;
-            end
-
-            for i, categoryObj in ipairs(categoriesObj) do
-                local categoryItemsCount = categoryObj.itemsCount or #categoryObj.items;
-                local isCategoryCollapsed = isCollapsed(categoryObj.category, "bag");
-                local isHeaderOnly = isCategoryCollapsed or categoryObj.itemsCount == 0;
-                local categoryRequiresNewLine = isCategoriesConfigMode or isHeaderOnly or categoryObj.category.separateLine;
-                local categoryRequiresFullRowWidth = isCategoriesConfigMode or isHeaderOnly;
-                local requiredNewLine =
-                    categoryRequiresNewLine
-                    or #currentRow == 0
-                    or #currentRow > 0 and
-                    (rowWithNewCategory and currentRowWidth + itemSize * (categoryItemsCount) > AddonNS.Const.ITEMS_PER_ROW * itemSize or not rowWithNewCategory)
-
-                if (i == 1) then
-                    currentRowY = currentRowY + AddonNS.Const.CATEGORY_HEIGHT;
-                elseif requiredNewLine then
-                    if (#currentRow > 0) then
-                        flushCurrentRow();
-                    end
-                    currentRowY = currentRowY + AddonNS.Const.CATEGORY_HEIGHT + AddonNS.Const.COLUMN_SPACING;
-                end
-                local nextCategoryObj = categoriesObj[i + 1]
-                local nextCategoryExists = nextCategoryObj ~= nil
-
-                local expandCategoryToRightColumnBoundary = 0
-                if not categoryRequiresFullRowWidth and #currentRow + categoryItemsCount < AddonNS.Const.ITEMS_PER_ROW then
-                    local shouldExpandToBoundary =
-                        (not nextCategoryExists)
-                        or isCollapsed(nextCategoryObj.category, "bag")
-                        or nextCategoryObj.itemsCount == 0
-                        or nextCategoryObj.category.separateLine
-                        or #currentRow + categoryItemsCount + #nextCategoryObj.items > AddonNS.Const.ITEMS_PER_ROW
-                    if shouldExpandToBoundary then
-                        expandCategoryToRightColumnBoundary = AddonNS.Const.ITEMS_PER_ROW - #currentRow - categoryItemsCount
-                    end
-                end
-                local categoryWidthSlots = AddonNS.Const.ITEMS_PER_ROW
-                if not categoryRequiresFullRowWidth then
-                    categoryWidthSlots = math.min(AddonNS.Const.ITEMS_PER_ROW, categoryItemsCount + expandCategoryToRightColumnBoundary)
-                end
-                table.insert(container.MyBags.categoryPositions,
-                    {
-                        category = categoryObj.category,
-                        itemsCount = categoryItemsCount,
-                        scope = "bag",
-                        x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
-                        y = currentRowY - AddonNS.Const.CATEGORY_HEIGHT,
-                        width = itemSize * categoryWidthSlots,
-                        height = AddonNS.Const.CATEGORY_HEIGHT + ((not isHeaderOnly and
-                            math.ceil(categoryItemsCount / AddonNS.Const.ITEMS_PER_ROW) *
-                            itemSize) or 0),
-                    });
-                rowWithNewCategory = true;
-                local items = categoryObj.items;
-                if (not isHeaderOnly) then
-                    for j = #items, 1, -1 do
-                        local item = items[j];
-                        table.insert(currentRow, item)
-                        currentRowWidth = currentRowWidth + itemSize
-                        if #currentRow >= AddonNS.Const.ITEMS_PER_ROW then
-                            flushCurrentRow()
-                        end
-                    end
-                end
-            end
-
-            if #currentRow > 0 then
-                flushCurrentRow()
-            end
-            if (container.MyBags.height <= currentRowY) then
-                container.MyBags.height = currentRowY;
-                container.MyBags.rows = currentRowNo;
-            end
-            return currentRowY
+        for button, position in pairs(positions) do
+            local bagID, slotID = button:GetBagID(), button:GetID()
+            positionsInBags[bagID] = positionsInBags[bagID] or {}
+            positionsInBags[bagID][slotID] = position
         end
-
-        -- Calculate positions for each column
-        local categoryAssignments = AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems, "bag") -- todo: this object is quite weird. Why is it a local global used among two functions :/
-
-
-        local columnSize = itemSize * AddonNS.Const.ITEMS_PER_ROW + AddonNS.Const.COLUMN_SPACING;
-        local columnBottomYByIndex = {}
-        for colIndex, categoryObjs in ipairs(categoryAssignments) do
-            local columnStartX = (colIndex - 1) * columnSize
-            columnBottomYByIndex[colIndex] = placeItemsInGrid(categoryObjs, columnStartX)
-        end
-
-        if AddonNS.BagViewState:IsCategoriesConfigMode() then
-            local lastColumnIndex = #categoryAssignments
-            local columnBottomY = columnBottomYByIndex[lastColumnIndex] or 0
-            local addCategoryY = 0
-            if columnBottomY > 0 then
-                addCategoryY = columnBottomY + AddonNS.Const.COLUMN_SPACING
-            end
-            local controlHeight = AddonNS.Const.CATEGORY_HEIGHT
-            local controlSpacing = AddonNS.Const.COLUMN_SPACING
-            table.insert(container.MyBags.categoryPositions, {
-                isAddCategoryControl = true,
-                x = (lastColumnIndex - 1) * columnSize - ITEM_SPACING / 2,
-                y = addCategoryY,
-                width = itemSize * AddonNS.Const.ITEMS_PER_ROW,
-                height = controlHeight,
-            })
-            table.insert(container.MyBags.categoryPositions, {
-                isExportCategoryControl = true,
-                x = (lastColumnIndex - 1) * columnSize - ITEM_SPACING / 2,
-                y = addCategoryY + controlHeight + controlSpacing,
-                width = itemSize * AddonNS.Const.ITEMS_PER_ROW,
-                height = controlHeight,
-            })
-            table.insert(container.MyBags.categoryPositions, {
-                isImportCategoryControl = true,
-                x = (lastColumnIndex - 1) * columnSize - ITEM_SPACING / 2,
-                y = addCategoryY + (controlHeight + controlSpacing) * 2,
-                width = itemSize * AddonNS.Const.ITEMS_PER_ROW,
-                height = controlHeight,
-            })
-            local addControlBottomY = addCategoryY + (controlHeight + controlSpacing) * 2 + controlHeight
-            if addControlBottomY > container.MyBags.height then
-                container.MyBags.height = addControlBottomY
-            end
-        end
+        container.MyBags.categoryPositions = categoryPositions
+        container.MyBags.height = height
+        container.MyBags.rows = rows
     end
     return index, itemButton;
 end

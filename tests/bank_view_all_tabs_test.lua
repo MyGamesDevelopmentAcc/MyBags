@@ -147,6 +147,11 @@ local addonEnv = {
 local baselineChunk = assert(loadfile("utils/searchCategoryBaseline.lua"))
 baselineChunk("MyBags", addonEnv)
 
+assert(loadfile("containerSearch.lua"))("MyBags", addonEnv)
+assert(loadfile("categoryLayout.lua"))("MyBags", addonEnv)
+
+assert(loadfile("categoryBackground.lua"))("MyBags", addonEnv)
+
 local bankViewChunk = assert(loadfile("bankView.lua"))
 bankViewChunk("MyBags", addonEnv)
 local hooks = assert(addonEnv.BankViewTestHooks, "BankViewTestHooks should be exposed")

@@ -11,6 +11,7 @@ local containerItemInfoCache = assert(AddonNS.ContainerItemInfoCache, "Container
 local BankView = {
     headerFrames = {},
     dropFrames = {},
+    dropFrameByCategoryId = {},
     currentScope = BANK_CHARACTER_SCOPE,
     visibleTabIds = {},
     refreshQueued = false,
@@ -35,14 +36,6 @@ local BANK_CONTENT_LEFT_PADDING = 6
 local BANK_CONTENT_FIRST_ROW_Y = 30
 local BANK_SEARCH_BOX_LEFT_X = 78
 local BANK_SEARCH_BOX_TOP_Y = -33
-local QUERY_HELP_SIDE_RIGHT = "right"
-local QUERY_HELP_TOOLTIP_TEXT = "Open query syntax and priority help"
-local SCOPE_DISABLED_CHECKBOX_TOOLTIP_TEXT = "Show scope-disabled categories in edit mode"
-local EDIT_CATEGORY_TOOLTIP = "Edit"
-local DELETE_CATEGORY_TOOLTIP = "Delete"
-local DELETE_CATEGORY_HINT = "Shift-click to delete without confirmation."
-local CATEGORY_VISIBLE_TEXTURE = "Interface\\FriendsFrame\\StatusIcon-Online"
-local CATEGORY_HIDDEN_TEXTURE = "Interface\\FriendsFrame\\StatusIcon-Offline"
 local CAPACITY_LABEL_FORMAT = "%d/%d"
 local BANK_DEFAULT_ITEM_SIZE = 41
 local BANK_RESIZE_HANDLE_SIZE = 16
@@ -100,16 +93,6 @@ local function getScopeForBankType(bankType)
         return BANK_ACCOUNT_SCOPE
     end
     return BANK_CHARACTER_SCOPE
-end
-
-local function getScopeVisibilityLabel(scope)
-    if scope == BANK_CHARACTER_SCOPE then
-        return "Bank"
-    end
-    if scope == BANK_ACCOUNT_SCOPE then
-        return "Warbank"
-    end
-    return "Bags"
 end
 
 local function ensureItemButtonBagMethods(itemButton)
@@ -241,131 +224,27 @@ local function refreshSearchBoxLayout()
     BankItemSearchBox:SetWidth(BagItemSearchBox:GetWidth())
 end
 
-local function ensureEditModeButton(self, panel)
-    if self.editModeButton then
-        return self.editModeButton
+local function showControls(self, panel)
+    if not self.controls then
+        self.controls = AddonNS.ContainerControls:Create(panel, BankFrame, BankItemSearchBox, BankFrame, "right")
+        self.controls.editButton:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -9, -34)
     end
-
-    local button = CreateFrame("Button", nil, panel, "UIPanelIconDropdownButtonTemplate")
-    button:SetSize(20, 20)
-    button:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -9, -34)
-    button:SetScript("OnClick", function()
-        if AddonNS.BagViewState:IsCategoriesConfigMode() then
-            AddonNS.BagViewState:SetMode("normal")
-            return
-        end
-        AddonNS.BagViewState:SetMode("categories_config")
-    end)
-
-    button:SetScript("OnEnter", function(frame)
-        GameTooltip:SetOwner(frame, "ANCHOR_TOP")
-        GameTooltip:SetText("Toggle edit mode")
-        GameTooltip:Show()
-    end)
-    button:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-
-    button:Hide()
-    self.editModeButton = button
-    return button
-end
-
-local function showEditModeButton(self, panel)
-    local button = ensureEditModeButton(self, panel)
-    if AddonNS.BagViewState:IsCategoriesConfigMode() then
-        button.Icon:SetVertexColor(1, 0.85, 0.2, 1)
-    else
-        button.Icon:SetVertexColor(0.78, 0.78, 0.78, 1)
-    end
+    self.controls:Refresh()
     panel.AutoSortButton:Hide()
-    button:Show()
+    self.controls.editButton:Show()
+    self.controls.helpButton:Show()
 end
 
-local function hideEditModeButton(self)
-    if self.editModeButton then
-        self.editModeButton:Hide()
-    end
-end
-
-local function ensureSearchHelpButton(self)
-    if self.searchHelpButton then
-        return self.searchHelpButton
-    end
-    local button = CreateFrame("Button", nil, BankFrame, "MainHelpPlateButton")
-    button:SetSize(64, 64)
-    button:SetScale(0.45)
-    button.mainHelpPlateButtonTooltipText = QUERY_HELP_TOOLTIP_TEXT
-    button:SetScript("OnClick", function()
-        AddonNS.CategoriesGUI:ToggleQueryHelpFrame(BankFrame, QUERY_HELP_SIDE_RIGHT)
-    end)
-    button:Hide()
-    self.searchHelpButton = button
-    return button
-end
-
-local function showSearchHelpButton(self)
-    local button = ensureSearchHelpButton(self)
-    button:ClearAllPoints()
-    button:SetPoint("LEFT", BankItemSearchBox, "RIGHT", 4, 0)
-    button:Show()
-end
-
-local function hideSearchHelpButton(self)
-    if self.searchHelpButton then
-        self.searchHelpButton:Hide()
-    end
-end
-
-local function ensureSearchScopeDisabledCheckbox(self)
-    if self.searchScopeDisabledCheckbox then
-        return self.searchScopeDisabledCheckbox
-    end
-    local checkbox = CreateFrame("CheckButton", nil, BankFrame, "ChatConfigCheckButtonTemplate")
-    checkbox:SetSize(30, 30)
-    checkbox:SetHitRectInsets(7, 7, 7, 7)
-    checkbox.Text:SetText("")
-    checkbox.Text:Hide()
-    checkbox:SetScript("OnClick", function(selfCheckbox)
-        AddonNS.BagViewState:SetShowScopeDisabledInConfigMode(selfCheckbox:GetChecked() == true)
-        selfCheckbox:SetChecked(AddonNS.BagViewState:ShouldShowScopeDisabledInConfigMode())
-    end)
-    checkbox:SetScript("OnEnter", function(selfCheckbox)
-        GameTooltip:SetOwner(selfCheckbox, "ANCHOR_TOP")
-        GameTooltip:SetText(SCOPE_DISABLED_CHECKBOX_TOOLTIP_TEXT)
-        GameTooltip:Show()
-    end)
-    checkbox:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    checkbox:Hide()
-    self.searchScopeDisabledCheckbox = checkbox
-    return checkbox
-end
-
-local function showSearchScopeDisabledCheckbox(self, panel)
-    local editButton = ensureEditModeButton(self, panel)
-    local checkbox = ensureSearchScopeDisabledCheckbox(self)
-    checkbox:ClearAllPoints()
-    checkbox:SetPoint("RIGHT", editButton, "LEFT", -2, 0)
-    checkbox:SetChecked(AddonNS.BagViewState:ShouldShowScopeDisabledInConfigMode())
-    checkbox:SetShown(AddonNS.BagViewState:IsCategoriesConfigMode())
-end
-
-local function hideSearchScopeDisabledCheckbox(self)
-    if self.searchScopeDisabledCheckbox then
-        self.searchScopeDisabledCheckbox:Hide()
+local function hideControls(self)
+    if self.controls then
+        self.controls:Hide()
     end
 end
 
 local function ensureItemButtonHooks(itemButton)
-    if itemButton.myBagAddonHooked then
+    if not AddonNS.DragAndDrop:HookItemButton(itemButton) then
         return
     end
-    itemButton:HookScript("OnDragStart", AddonNS.DragAndDrop.itemStartDrag)
-    itemButton:HookScript("OnDragStop", AddonNS.DragAndDrop.itemStopDrag)
-    itemButton:HookScript("PreClick", AddonNS.DragAndDrop.itemOnClick)
-    itemButton:HookScript("OnReceiveDrag", AddonNS.DragAndDrop.itemOnReceiveDrag)
     itemButton:HookScript("OnEnter", function(button)
         local category = button.ItemCategory
         if not category then
@@ -395,7 +274,6 @@ local function ensureItemButtonHooks(itemButton)
         end
     end)
 
-    itemButton.myBagAddonHooked = true
 end
 
 local function getActiveBankPanel()
@@ -736,53 +614,8 @@ local function refreshResizeHandle(self, panel)
     ensureResizeController(self, panel):Refresh()
 end
 
-local function evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo, itemButton)
-    local includeInSearch = defaultMatch
-    local queryMatch = false
-    if not defaultMatch and searchEvaluator then
-        local payload = AddonNS.CustomCategories:GetItemQueryPayload(itemInfo.itemID, itemButton, itemInfo)
-        includeInSearch, queryMatch = AddonNS.QueryCategories:EvaluateSearchUnion(defaultMatch, searchEvaluator, payload)
-    end
-    return includeInSearch, queryMatch
-end
-
-local function resolveIncludeInSearch(itemButton, itemInfo, searchActive, searchEvaluator)
-    local cachedDefaultMatch = itemButton._myBagsDefaultSearchMatch
-    local defaultMatch = true
-    if searchActive and type(cachedDefaultMatch) == "boolean" then
-        defaultMatch = cachedDefaultMatch
-    elseif searchActive then
-        defaultMatch = not itemInfo.isFiltered
-    end
-    return evaluateSearchVisibility(defaultMatch, searchEvaluator, itemInfo, itemButton)
-end
-
 local function shouldRetryForMissingItemData(hasAnyButtons, hadAnyItemData, retryCount)
     return hasAnyButtons and (not hadAnyItemData) and retryCount < 6
-end
-
-local function buildCategoryCacheKey(itemButton, itemInfo, scope, categorizationVersion)
-    return table.concat({
-        tostring(itemButton:GetBagID()),
-        tostring(itemButton:GetID()),
-        tostring(itemInfo.itemID),
-        tostring(itemInfo.stackCount),
-        tostring(itemInfo.quality),
-        tostring(itemInfo.hyperlink),
-        tostring(scope),
-        tostring(categorizationVersion),
-    }, ":")
-end
-
-local function resolveCachedOrComputeCategory(self, itemButton, itemInfo, scope)
-    local cacheKey = buildCategoryCacheKey(itemButton, itemInfo, scope, self.categorizationVersion)
-    if itemButton._myBagsCategoryCacheKey == cacheKey and itemButton._myBagsCategoryCacheValue then
-        return itemButton._myBagsCategoryCacheValue
-    end
-    local category = AddonNS.Categories:Categorize(itemInfo.itemID, itemButton)
-    itemButton._myBagsCategoryCacheKey = cacheKey
-    itemButton._myBagsCategoryCacheValue = category
-    return category
 end
 
 local function invalidateCategorizationCacheVersion(self)
@@ -858,97 +691,6 @@ local function updateDropAreaOverlays(self, scope)
     end
 end
 
-local function getCursorPositionForFrame(frame)
-    local cursorX, cursorY = GetCursorPosition()
-    local scale = frame:GetEffectiveScale()
-    local localX = cursorX / scale
-    local localY = cursorY / scale
-    return localX, localY
-end
-
-local function getMouseRelativePosition(frame)
-    local localX, localY = getCursorPositionForFrame(frame)
-    localX = localX - frame:GetLeft()
-    localY = localY - frame:GetBottom()
-    local width = frame:GetWidth()
-    local height = frame:GetHeight()
-    if localX < 0 or localX > width or localY < 0 or localY > height then
-        return nil, nil
-    end
-    return localX, width
-end
-
-local function getBackgroundHintFrame(self, frame, scope)
-    if not self.dropFrames then
-        return nil
-    end
-    local cursorX, cursorY = getCursorPositionForFrame(frame)
-    for index = 1, #self.dropFrames do
-        local dropFrame = self.dropFrames[index]
-        if dropFrame and dropFrame:IsShown() and dropFrame.MyBagsScope == scope and dropFrame.ItemCategory then
-            local left = dropFrame:GetLeft()
-            local right = dropFrame:GetRight()
-            local bottom = dropFrame:GetBottom()
-            local top = dropFrame:GetTop()
-            if left and right and bottom and top and cursorX >= left and cursorX <= right and cursorY >= bottom and cursorY <= top then
-                return dropFrame
-            end
-        end
-    end
-    return nil
-end
-
-local function getBackgroundColumnFallbackHintFrame(self, frame, scope)
-    local relativeX, frameWidth = getMouseRelativePosition(frame)
-    if not relativeX or not frameWidth then
-        return nil
-    end
-    local columnNo = self:ResolveDropColumn(relativeX, scope, frameWidth)
-    if not columnNo then
-        return nil
-    end
-    local targetCategory = AddonNS.Categories:GetLastCategoryInColumn(columnNo, scope)
-    if not targetCategory or not targetCategory.GetId then
-        return nil
-    end
-    if not self.dropFrameByCategoryId then
-        return nil
-    end
-    return self.dropFrameByCategoryId[targetCategory:GetId()]
-end
-
-local function refreshBackgroundHoverHint(self, frame)
-    if not AddonNS.DragAndDrop:IsItemDragActive() and not AddonNS.DragAndDrop:IsCategoryDragActive() then
-        AddonNS.gui:ClearHoveredCategoryFrame(frame)
-        return
-    end
-    local scope = frame.MyBagsScope or self.currentScope
-    local hintFrame = getBackgroundHintFrame(self, frame, scope)
-    if not hintFrame then
-        hintFrame = getBackgroundColumnFallbackHintFrame(self, frame, scope)
-    end
-    if hintFrame and hintFrame:IsShown() then
-        AddonNS.gui:SetHoveredCategoryFrame(hintFrame)
-        return
-    end
-    AddonNS.gui:ClearHoveredCategoryFrame(frame)
-end
-
-local function handleBackgroundDrop(self, frame, mouseButtonName)
-    if mouseButtonName and mouseButtonName ~= "LeftButton" then
-        return
-    end
-    if AddonNS.DragAndDrop:IsItemDragActive() or AddonNS.DragAndDrop:IsCategoryDragActive() then
-        local scope = frame.MyBagsScope or self.currentScope
-        local hintFrame = getBackgroundHintFrame(self, frame, scope)
-        if hintFrame and hintFrame:IsShown() then
-            AddonNS.DragAndDrop.categoryOnReceiveDrag(hintFrame)
-            return
-        end
-    end
-    AddonNS.DragAndDrop.backgroundOnReceiveDrag(frame, mouseButtonName)
-end
-
 local function ensureBackground(self, parentFrame)
     if self.backgroundFrame then
         return
@@ -960,25 +702,17 @@ local function ensureBackground(self, parentFrame)
     backgroundFrame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
     backgroundFrame:SetBackdropColor(0, 0, 0, 0)
     backgroundFrame:EnableMouse(true)
-    backgroundFrame:SetScript("OnEnter", function(frame)
-        refreshBackgroundHoverHint(self, frame)
-    end)
-    backgroundFrame:SetScript("OnLeave", function(frame)
-        AddonNS.gui:ClearHoveredCategoryFrame(frame)
-    end)
-    backgroundFrame:SetScript("OnUpdate", function(frame)
-        refreshBackgroundHoverHint(self, frame)
-    end)
-    backgroundFrame:HookScript("OnHide", function(frame)
-        AddonNS.gui:ClearHoveredCategoryFrame(frame)
-    end)
-    backgroundFrame:SetScript("OnReceiveDrag", function(frame)
-        handleBackgroundDrop(self, frame)
-    end)
-    backgroundFrame:SetScript("OnMouseUp", function(frame, mouseButtonName)
-        handleBackgroundDrop(self, frame, mouseButtonName)
-    end)
-    backgroundFrame.myBagAddonHooked = true
+    AddonNS.CategoryBackground:Install(backgroundFrame, {
+        GetCategoryFrames = function()
+            return self.dropFrames
+        end,
+        GetCategoryFrame = function(category)
+            return self.dropFrameByCategoryId[category:GetId()]
+        end,
+        ResolveDropColumn = function(relativeX, scope, width)
+            return self:ResolveDropColumn(relativeX, scope, width)
+        end,
+    })
 
     self.backgroundFrame = backgroundFrame
 end
@@ -1001,230 +735,10 @@ local function ensureContentArea(self, panel)
 end
 
 local function ensureHeaderFrame(bankView, index)
-    if bankView.headerFrames[index] then
-        return bankView.headerFrames[index]
+    if not bankView.headerFrames[index] then
+        bankView.headerFrames[index] = AddonNS.CategoryFrame:Create(bankView.backgroundFrame)
     end
-
-    local headerFrame = CreateFrame("Frame", nil, bankView.backgroundFrame, "BackdropTemplate")
-    headerFrame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
-    headerFrame:SetBackdropColor(1, 0, 0, 0)
-
-    local label = headerFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    label:SetPoint("TOPLEFT", headerFrame, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
-    label:SetPoint("TOPRIGHT", headerFrame, "TOPRIGHT", -ITEM_SPACING / 2, -ITEM_SPACING / 2)
-    label:SetJustifyH("LEFT")
-    label:SetJustifyV("TOP")
-    label:SetWordWrap(false)
-
-    local hintOverlay = CreateFrame("Frame", nil, headerFrame, "BackdropTemplate")
-    hintOverlay:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
-    hintOverlay:SetAllPoints(headerFrame)
-    hintOverlay:EnableMouse(false)
-    hintOverlay:Hide()
-
-    local deleteButton = CreateFrame("Button", nil, headerFrame)
-    deleteButton:SetSize(16, 16)
-    deleteButton:SetPoint("TOPRIGHT", headerFrame, "TOPRIGHT", -6, -3)
-    deleteButton:SetFrameLevel(headerFrame:GetFrameLevel() + 25)
-    deleteButton:Hide()
-
-    deleteButton.Icon = deleteButton:CreateTexture(nil, "ARTWORK")
-    deleteButton.Icon:SetAllPoints()
-    deleteButton.Icon:SetAtlas("common-icon-delete")
-
-    deleteButton.Highlight = deleteButton:CreateTexture(nil, "HIGHLIGHT")
-    deleteButton.Highlight:SetAllPoints()
-    deleteButton.Highlight:SetAtlas("common-icon-delete")
-    deleteButton.Highlight:SetAlpha(0.45)
-    deleteButton.Highlight:SetBlendMode("ADD")
-
-    local editButton = CreateFrame("Button", nil, headerFrame)
-    editButton:SetSize(16, 16)
-    editButton:SetPoint("TOPRIGHT", deleteButton, "TOPLEFT", -2, 0)
-    editButton:SetFrameLevel(headerFrame:GetFrameLevel() + 25)
-    editButton:Hide()
-
-    editButton.Icon = editButton:CreateTexture(nil, "ARTWORK")
-    editButton.Icon:SetPoint("TOPLEFT", editButton, "TOPLEFT", -4, 4)
-    editButton.Icon:SetPoint("BOTTOMRIGHT", editButton, "BOTTOMRIGHT", 4, -4)
-    editButton.Icon:SetAtlas("GM-icon-settings")
-    editButton.Icon:SetVertexColor(1, 0.85, 0.2, 1)
-
-    editButton.Highlight = editButton:CreateTexture(nil, "HIGHLIGHT")
-    editButton.Highlight:SetPoint("TOPLEFT", editButton, "TOPLEFT", -2, 2)
-    editButton.Highlight:SetPoint("BOTTOMRIGHT", editButton, "BOTTOMRIGHT", 2, -2)
-    editButton.Highlight:SetAtlas("GM-icon-settings")
-    editButton.Highlight:SetVertexColor(1, 0.85, 0.2, 1)
-    editButton.Highlight:SetAlpha(0.45)
-    editButton.Highlight:SetBlendMode("ADD")
-
-    editButton:SetScript("OnEnter", function(selfButton)
-        local category = selfButton:GetParent().ItemCategory
-        GameTooltip:SetOwner(selfButton, "ANCHOR_TOP")
-        GameTooltip:SetText(EDIT_CATEGORY_TOOLTIP .. " \"" .. category:GetName() .. "\" category")
-        GameTooltip:Show()
-    end)
-    editButton:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    editButton:SetScript("OnClick", function(selfButton)
-        local category = selfButton:GetParent().ItemCategory
-        AddonNS.CategoriesGUI:SelectCategoryById(category:GetId())
-    end)
-
-    local scopeVisibilityButton = CreateFrame("Button", nil, headerFrame)
-    scopeVisibilityButton:SetSize(16, 16)
-    scopeVisibilityButton:SetPoint("TOPRIGHT", editButton, "TOPLEFT", -2, 0)
-    scopeVisibilityButton:SetFrameLevel(headerFrame:GetFrameLevel() + 25)
-    scopeVisibilityButton:Hide()
-
-    scopeVisibilityButton.Icon = scopeVisibilityButton:CreateTexture(nil, "ARTWORK")
-    scopeVisibilityButton.Icon:SetAllPoints()
-    scopeVisibilityButton.Icon:SetTexture(CATEGORY_VISIBLE_TEXTURE)
-
-    scopeVisibilityButton.Highlight = scopeVisibilityButton:CreateTexture(nil, "HIGHLIGHT")
-    scopeVisibilityButton.Highlight:SetAllPoints()
-    scopeVisibilityButton.Highlight:SetTexture(CATEGORY_VISIBLE_TEXTURE)
-    scopeVisibilityButton.Highlight:SetAlpha(0.45)
-    scopeVisibilityButton.Highlight:SetBlendMode("ADD")
-
-    scopeVisibilityButton:SetScript("OnEnter", function(selfButton)
-        local category = selfButton:GetParent().ItemCategory
-        local scope = selfButton:GetParent().MyBagsScope or BANK_CHARACTER_SCOPE
-        local scopeLabel = getScopeVisibilityLabel(scope)
-        local visible = AddonNS.CustomCategories:IsVisibleInScope(category, scope)
-        GameTooltip:SetOwner(selfButton, "ANCHOR_TOP")
-        if visible then
-            GameTooltip:SetText("Visible in " .. scopeLabel)
-        else
-            GameTooltip:SetText("Hidden in " .. scopeLabel)
-        end
-        GameTooltip:AddLine(
-            "When hidden, this category is not considered for categorization or display in " .. scopeLabel .. ".",
-            1, 1, 1, true
-        )
-        GameTooltip:Show()
-    end)
-    scopeVisibilityButton:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    scopeVisibilityButton:SetScript("OnClick", function(selfButton)
-        local parent = selfButton:GetParent()
-        local category = parent.ItemCategory
-        local scope = parent.MyBagsScope or BANK_CHARACTER_SCOPE
-        local visible = AddonNS.CustomCategories:IsVisibleInScope(category, scope)
-        AddonNS.CustomCategories:SetVisibleInScope(category, scope, not visible)
-    end)
-
-    deleteButton:SetScript("OnEnter", function(selfButton)
-        local category = selfButton:GetParent().ItemCategory
-        GameTooltip:SetOwner(selfButton, "ANCHOR_TOP")
-        GameTooltip:SetText(DELETE_CATEGORY_TOOLTIP .. " \"" .. category:GetName() .. "\" category")
-        GameTooltip:AddLine(DELETE_CATEGORY_HINT, 1, 0.82, 0, true)
-        GameTooltip:Show()
-    end)
-    deleteButton:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    deleteButton:SetScript("OnClick", function(selfButton)
-        local category = selfButton:GetParent().ItemCategory
-        if IsShiftKeyDown() then
-            StaticPopupDialogs["DELETE_CATEGORY_CONFIRM"].OnAccept(nil, category)
-            return
-        end
-        local dialog = StaticPopup_Show("DELETE_CATEGORY_CONFIRM", category:GetName() or "")
-        if dialog then
-            dialog.data = category
-        end
-    end)
-
-    headerFrame:EnableMouse(true)
-    headerFrame:RegisterForDrag("LeftButton")
-    headerFrame:SetScript("OnEnter", function(frame)
-        if frame.isAddCategoryControl then
-            AddonNS.gui:StyleCategoryControl(frame, true)
-        end
-        AddonNS.gui:SetHoveredCategoryFrame(frame)
-    end)
-    headerFrame:SetScript("OnLeave", function(frame)
-        if frame.isAddCategoryControl then
-            AddonNS.gui:StyleCategoryControl(frame, false)
-        end
-        AddonNS.gui:ClearHoveredCategoryFrame(frame)
-    end)
-    headerFrame:HookScript("OnHide", function(frame)
-        AddonNS.gui:ClearHoveredCategoryFrame(frame)
-    end)
-    headerFrame:SetScript("OnMouseUp", AddonNS.DragAndDrop.categoryOnMouseUp)
-    headerFrame:SetScript("OnReceiveDrag", AddonNS.DragAndDrop.categoryOnReceiveDrag)
-    headerFrame:SetScript("OnDragStart", function(frame)
-        AddonNS.gui:StartCategoryDragVisual(frame.ItemCategory:GetDisplayName() or "Unassigned")
-        AddonNS.DragAndDrop.categoryStartDrag(frame)
-        PlaySound(1183)
-    end)
-    headerFrame:SetScript("OnDragStop", function()
-        AddonNS.gui:StopCategoryDragVisual()
-        PlaySound(1200)
-    end)
-    function headerFrame.SetText(_, text)
-        label:SetText(text)
-    end
-
-    function headerFrame.ApplyCategoryTextLayout(_)
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", headerFrame, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
-        label:SetPoint("TOPRIGHT", headerFrame, "TOPRIGHT", -ITEM_SPACING / 2, -ITEM_SPACING / 2)
-        label:SetJustifyH("LEFT")
-        label:SetJustifyV("TOP")
-        label:SetFontObject("GameFontNormal")
-    end
-
-    function headerFrame.ApplyCategoryTextLayoutWithEditButton(_)
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", headerFrame, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
-        label:SetPoint("TOPRIGHT", editButton, "TOPLEFT", -4, -ITEM_SPACING / 2)
-        label:SetJustifyH("LEFT")
-        label:SetJustifyV("TOP")
-        label:SetFontObject("GameFontNormal")
-    end
-
-    function headerFrame.ApplyCategoryTextLayoutWithEditAndDeleteButtons(_)
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", headerFrame, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
-        label:SetPoint("TOPRIGHT", scopeVisibilityButton, "TOPLEFT", -4, -ITEM_SPACING / 2)
-        label:SetJustifyH("LEFT")
-        label:SetJustifyV("TOP")
-        label:SetFontObject("GameFontNormal")
-    end
-
-    function headerFrame.ApplyCategoryTextLayoutWithScopeAndEditButtons(_)
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", headerFrame, "TOPLEFT", ITEM_SPACING / 2, -ITEM_SPACING / 2)
-        label:SetPoint("TOPRIGHT", scopeVisibilityButton, "TOPLEFT", -4, -ITEM_SPACING / 2)
-        label:SetJustifyH("LEFT")
-        label:SetJustifyV("TOP")
-        label:SetFontObject("GameFontNormal")
-    end
-
-    function headerFrame.ApplyAddControlTextLayout(_)
-        label:ClearAllPoints()
-        label:SetPoint("LEFT", headerFrame, "LEFT", 6, 0)
-        label:SetPoint("RIGHT", headerFrame, "RIGHT", -6, 0)
-        label:SetJustifyH("CENTER")
-        label:SetJustifyV("MIDDLE")
-        label:SetFontObject("GameFontHighlight")
-    end
-
-    headerFrame.label = label
-    headerFrame.fs = label
-    headerFrame.editButton = editButton
-    headerFrame.deleteButton = deleteButton
-    headerFrame.scopeVisibilityButton = scopeVisibilityButton
-    headerFrame.hintOverlay = hintOverlay
-    headerFrame.isAddCategoryControl = false
-    AddonNS.gui:EnsureCategoryControlBackdrop(headerFrame)
-    bankView.headerFrames[index] = headerFrame
-    return headerFrame
+    return bankView.headerFrames[index]
 end
 
 local function ensureDropFrame(self, index)
@@ -1257,179 +771,12 @@ local function ensureDropFrame(self, index)
     end)
     dropFrame:SetScript("OnReceiveDrag", AddonNS.DragAndDrop.categoryOnReceiveDrag)
     dropFrame:SetScript("OnMouseUp", function(frame, button)
-        if button == "LeftButton" and GetCursorInfo() then
-            AddonNS.DragAndDrop.categoryOnReceiveDrag(frame)
-        end
+        AddonNS.CategoryBackground:ReceiveCategoryMouseUp(frame, button)
     end)
 
     dropFrame.hintOverlay = hintOverlay
     self.dropFrames[index] = dropFrame
     return dropFrame
-end
-
-local function placeItemsAndBuildHeaders(scope, categoryAssignments, itemSize)
-    local categoryPositions = {}
-    local positions = {}
-    local columnsBottom = {}
-    local leftPadding = BANK_CONTENT_LEFT_PADDING
-    local firstRowY = BANK_CONTENT_FIRST_ROW_Y
-    local columnPixelWidth = itemSize * ITEMS_PER_ROW + AddonNS.Const.COLUMN_SPACING
-    local isCategoriesConfigMode = AddonNS.BagViewState:IsCategoriesConfigMode()
-
-    local function placeColumn(columnIndex, categories)
-        local columnStartX = leftPadding + (columnIndex - 1) * columnPixelWidth
-        local currentRow = {}
-        local currentRowY = firstRowY
-        local rowWithNewCategory = false
-
-        local function flushCurrentRow()
-            local xOffset = 0
-            for rowIndex = 1, #currentRow do
-                local itemButton = currentRow[rowIndex]
-                if itemButton ~= AddonNS.itemButtonPlaceholder then
-                    positions[itemButton] = {
-                        x = columnStartX + xOffset,
-                        y = currentRowY,
-                    }
-                end
-                xOffset = xOffset + itemSize
-            end
-            currentRow = {}
-            currentRowY = currentRowY + itemSize
-            rowWithNewCategory = false
-        end
-
-        for index, categoryObj in ipairs(categories) do
-            local category = categoryObj.category
-            local items = categoryObj.items
-            local itemsCount = categoryObj.itemsCount or #items
-            local collapsed = AddonNS.Collapsed.isCollapsed(category, scope)
-            local isHeaderOnly = collapsed or itemsCount == 0
-            local categoryRequiresNewLine = isCategoriesConfigMode or isHeaderOnly or category.separateLine
-            local categoryRequiresFullRowWidth = isCategoriesConfigMode or isHeaderOnly
-            local requiredNewLine =
-                categoryRequiresNewLine
-                or #currentRow == 0
-                or (#currentRow > 0 and ((rowWithNewCategory and #currentRow + itemsCount > ITEMS_PER_ROW) or not rowWithNewCategory))
-
-            if index == 1 then
-                currentRowY = currentRowY + CATEGORY_HEIGHT
-            elseif requiredNewLine then
-                if #currentRow > 0 then
-                    flushCurrentRow()
-                end
-                currentRowY = currentRowY + CATEGORY_HEIGHT + AddonNS.Const.COLUMN_SPACING
-            end
-
-            local nextCategoryObj = categories[index + 1]
-            local nextCategoryExists = nextCategoryObj ~= nil
-            local expandCategoryToRightColumnBoundary = 0
-            if not categoryRequiresFullRowWidth and #currentRow + itemsCount < ITEMS_PER_ROW then
-                local nextCategoryItemsCount = 0
-                if nextCategoryExists then
-                    nextCategoryItemsCount = nextCategoryObj.itemsCount or #(nextCategoryObj.items)
-                end
-                local shouldExpandToBoundary =
-                    (not nextCategoryExists)
-                    or AddonNS.Collapsed.isCollapsed(nextCategoryObj.category, scope)
-                    or nextCategoryItemsCount == 0
-                    or nextCategoryObj.category.separateLine
-                    or #currentRow + itemsCount + nextCategoryItemsCount > ITEMS_PER_ROW
-                if shouldExpandToBoundary then
-                    expandCategoryToRightColumnBoundary = ITEMS_PER_ROW - #currentRow - itemsCount
-                end
-            end
-
-            local categoryWidthSlots = ITEMS_PER_ROW
-            if not categoryRequiresFullRowWidth then
-                categoryWidthSlots = math.min(ITEMS_PER_ROW, itemsCount + expandCategoryToRightColumnBoundary)
-            end
-            table.insert(categoryPositions, {
-                category = category,
-                itemsCount = itemsCount,
-                x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
-                y = currentRowY - CATEGORY_HEIGHT,
-                width = itemSize * categoryWidthSlots,
-                height = CATEGORY_HEIGHT,
-                blockHeight = CATEGORY_HEIGHT +
-                    ((not isHeaderOnly and math.ceil(itemsCount / ITEMS_PER_ROW) * itemSize) or 0),
-                scope = scope,
-            })
-
-            rowWithNewCategory = true
-            if not isHeaderOnly then
-                for itemIndex = #items, 1, -1 do
-                    local itemButton = items[itemIndex]
-                    table.insert(currentRow, itemButton)
-                    if #currentRow >= ITEMS_PER_ROW then
-                        flushCurrentRow()
-                    end
-                end
-            end
-        end
-
-        if #currentRow > 0 then
-            flushCurrentRow()
-        end
-
-        columnsBottom[columnIndex] = currentRowY
-    end
-
-    for columnIndex, categories in ipairs(categoryAssignments) do
-        placeColumn(columnIndex, categories)
-    end
-
-    local contentBottom = 0
-    for index = 1, #columnsBottom do
-        if columnsBottom[index] > contentBottom then
-            contentBottom = columnsBottom[index]
-        end
-    end
-
-    if AddonNS.BagViewState:IsCategoriesConfigMode() then
-        local lastColumnIndex = math.max(1, #categoryAssignments)
-        local columnBottomY = columnsBottom[lastColumnIndex] or firstRowY
-        local addControlY = columnBottomY + AddonNS.Const.COLUMN_SPACING
-        local controlHeight = AddonNS.Const.CATEGORY_HEIGHT
-        local controlSpacing = AddonNS.Const.COLUMN_SPACING
-        local controlX = leftPadding + (lastColumnIndex - 1) * columnPixelWidth - ITEM_SPACING / 2
-        local controlWidth = itemSize * ITEMS_PER_ROW
-
-        table.insert(categoryPositions, {
-            isAddCategoryControl = true,
-            scope = scope,
-            x = controlX,
-            y = addControlY,
-            width = controlWidth,
-            height = controlHeight,
-            blockHeight = controlHeight,
-        })
-        table.insert(categoryPositions, {
-            isExportCategoryControl = true,
-            scope = scope,
-            x = controlX,
-            y = addControlY + controlHeight + controlSpacing,
-            width = controlWidth,
-            height = controlHeight,
-            blockHeight = controlHeight,
-        })
-        table.insert(categoryPositions, {
-            isImportCategoryControl = true,
-            scope = scope,
-            x = controlX,
-            y = addControlY + (controlHeight + controlSpacing) * 2,
-            width = controlWidth,
-            height = controlHeight,
-            blockHeight = controlHeight,
-        })
-
-        local addControlBottomY = addControlY + (controlHeight + controlSpacing) * 2 + controlHeight
-        if addControlBottomY > contentBottom then
-            contentBottom = addControlBottomY
-        end
-    end
-
-    return positions, categoryPositions, contentBottom
 end
 
 function BankView:ResolveDropColumn(relativeX, scope, frameWidth)
@@ -1479,7 +826,6 @@ end
 
 local function renderHeaders(self, scope, panel, categoryPositions)
     self.backgroundFrame.MyBagsScope = scope
-    local customCategories = AddonNS.CustomCategories:GetCategories()
     local dropFrameByCategoryId = {}
 
     for index = 1, #categoryPositions do
@@ -1494,84 +840,10 @@ local function renderHeaders(self, scope, panel, categoryPositions)
         frame.MyBagsHintAnchorFrame = self.backgroundFrame
         frame.MyBagsHintAlignToFrame = true
 
-        if categoryPosition.isAddCategoryControl or categoryPosition.isExportCategoryControl or categoryPosition.isImportCategoryControl then
-            frame.ItemCategory = nil
-            frame.isAddCategoryControl = true
-            frame.editButton:Hide()
-            frame.deleteButton:Hide()
-            frame.scopeVisibilityButton:Hide()
-            frame:RegisterForDrag("LeftButton")
-            frame:SetScript("OnReceiveDrag", nil)
-            frame:SetScript("OnDragStart", nil)
-            frame:SetScript("OnDragStop", nil)
-            frame:SetScript("OnMouseUp", function(_, button)
-                if button ~= "LeftButton" then
-                    return
-                end
-                if categoryPosition.isAddCategoryControl then
-                    StaticPopup_Show("CREATE_CATEGORY_CONFIRM")
-                    return
-                end
-                if categoryPosition.isExportCategoryControl then
-                    AddonNS.CategoriesGUI:ToggleExportFrame()
-                    return
-                end
-                AddonNS.CategoriesGUI:ToggleImportFrame()
-            end)
-            if categoryPosition.isExportCategoryControl then
-                frame.controlKind = "export"
-            elseif categoryPosition.isImportCategoryControl then
-                frame.controlKind = "import"
-            else
-                frame.controlKind = "add"
-            end
-            frame.addControlBackdrop:Show()
-            frame:ApplyAddControlTextLayout()
-            AddonNS.gui:StyleCategoryControl(frame, false)
-            frame:Show()
+        AddonNS.CategoryFrame:Configure(frame, categoryPosition, scope)
+        if frame.isAddCategoryControl then
             dropFrame:Hide()
         else
-            frame.ItemCategory = categoryPosition.category
-            frame.isAddCategoryControl = false
-            frame.controlKind = nil
-            frame.addControlBackdrop:Hide()
-            frame:RegisterForDrag("LeftButton")
-            frame:SetScript("OnMouseUp", AddonNS.DragAndDrop.categoryOnMouseUp)
-            frame:SetScript("OnReceiveDrag", AddonNS.DragAndDrop.categoryOnReceiveDrag)
-            frame:SetScript("OnDragStart", function(headerFrame)
-                AddonNS.gui:StartCategoryDragVisual(headerFrame.ItemCategory:GetDisplayName() or "Unassigned")
-                AddonNS.DragAndDrop.categoryStartDrag(headerFrame)
-                PlaySound(1183)
-            end)
-            frame:SetScript("OnDragStop", function()
-                AddonNS.gui:StopCategoryDragVisual()
-                PlaySound(1200)
-            end)
-
-            local categoryId = categoryPosition.category:GetId()
-            local canEditCategory = AddonNS.BagViewState:IsCategoriesConfigMode() and customCategories[categoryId] ~= nil
-            local canToggleScopeVisibility = canEditCategory
-            local canDeleteCategory = canEditCategory and not categoryPosition.category:IsProtected()
-            frame.editButton:SetShown(canEditCategory)
-            frame.scopeVisibilityButton:SetShown(canToggleScopeVisibility)
-            frame.deleteButton:SetShown(canDeleteCategory)
-            if canToggleScopeVisibility then
-                local visible = AddonNS.CustomCategories:IsVisibleInScope(categoryPosition.category, scope)
-                local texture = visible and CATEGORY_VISIBLE_TEXTURE or CATEGORY_HIDDEN_TEXTURE
-                frame.scopeVisibilityButton.Icon:SetTexture(texture)
-                frame.scopeVisibilityButton.Highlight:SetTexture(texture)
-            end
-
-            if canToggleScopeVisibility and canDeleteCategory then
-                frame:ApplyCategoryTextLayoutWithEditAndDeleteButtons()
-            elseif canToggleScopeVisibility then
-                frame:ApplyCategoryTextLayoutWithScopeAndEditButtons()
-            elseif canEditCategory then
-                frame:ApplyCategoryTextLayoutWithEditButton()
-            else
-                frame:ApplyCategoryTextLayout()
-            end
-
             dropFrame.ItemCategory = categoryPosition.category
             dropFrame.fs = frame.fs
             dropFrame.MyBagsScope = scope
@@ -1582,16 +854,7 @@ local function renderHeaders(self, scope, panel, categoryPositions)
             dropFrame:SetPoint("TOPLEFT", self.backgroundFrame, "TOPLEFT", categoryPosition.x, -categoryPosition.y)
             dropFrame:SetSize(categoryPosition.width, categoryPosition.blockHeight)
             dropFrame:Show()
-            dropFrameByCategoryId[categoryId] = dropFrame
-
-            local label = categoryPosition.category:GetDisplayName(categoryPosition.itemsCount) or
-                categoryPosition.category:GetName()
-            if AddonNS.Collapsed.isCollapsed(categoryPosition.category, scope) then
-                label = label ..
-                    " (" .. categoryPosition.itemsCount .. ") |A:glues-characterSelect-icon-arrowDown:19:19:0:4|a"
-            end
-            frame:SetText(label)
-            frame:Show()
+            dropFrameByCategoryId[categoryPosition.category:GetId()] = dropFrame
         end
     end
 
@@ -1609,9 +872,7 @@ function BankView:Refresh(scope)
     if not BankFrame:IsShown() or not panel:IsShown() then
         hideHeaders(self)
         hideContentArea(self)
-        hideEditModeButton(self)
-        hideSearchHelpButton(self)
-        hideSearchScopeDisabledCheckbox(self)
+        hideControls(self)
         hideBottomBarControls(self)
         if self.resizeController then
             self.resizeController:Refresh()
@@ -1620,8 +881,6 @@ function BankView:Refresh(scope)
     end
 
     refreshSearchBoxLayout()
-    showSearchHelpButton(self)
-    showSearchScopeDisabledCheckbox(self, panel)
     local activeBankType = BankFrame:GetActiveBankType()
     local activeScope = scope or getScopeForBankType(activeBankType)
     local tabIds = getPurchasedTabIdsForActiveType(panel)
@@ -1634,7 +893,7 @@ function BankView:Refresh(scope)
     self.contentFrame.MyBagsScope = activeScope
     ensureBackground(self, self.contentFrame)
     hideBlizzardBankTabs(panel)
-    showEditModeButton(self, panel)
+    showControls(self, panel)
     refreshBottomBar(self, panel, activeBankType, tabIds)
     self.contentFrame:Show()
     self.backgroundFrame:Show()
@@ -1665,18 +924,18 @@ function BankView:Refresh(scope)
             local info = containerItemInfoCache:Get(bagID, slotID)
             if info then
                 hadAnyItemData = true
-                local includeInSearch = resolveIncludeInSearch(itemButton, info, searchActive, searchEvaluator)
+                local includeInSearch = AddonNS.ContainerSearch:ResolveIncludeInSearch(itemButton, info, searchActive, searchEvaluator)
                 itemButton._myBagsItemId = info.itemID
                 local category = nil
                 if searchActive then
-                    category = resolveCachedOrComputeCategory(self, itemButton, info, activeScope)
+                    category = AddonNS.ContainerSearch:ResolveCategory(itemButton, info, activeScope, self.categorizationVersion)
                     itemButton.ItemCategory = category
                     AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, false, true)
                 end
                 if includeInSearch then
                     AddonNS.ItemButtonSearchOverlay:Apply(itemButton, true)
                     if not category then
-                        category = resolveCachedOrComputeCategory(self, itemButton, info, activeScope)
+                        category = AddonNS.ContainerSearch:ResolveCategory(itemButton, info, activeScope, self.categorizationVersion)
                     end
                     itemButton.ItemCategory = category
                     AddonNS.SearchCategoryBaseline:Add(arrangedItems, category, itemButton, true, searchActive)
@@ -1705,8 +964,8 @@ function BankView:Refresh(scope)
     self.columnPixelWidth = itemSize * ITEMS_PER_ROW + AddonNS.Const.COLUMN_SPACING
     self.firstColumnStartX = BANK_CONTENT_LEFT_PADDING - ITEM_SPACING / 2
     local categoryAssignments = AddonNS.Categories:ArrangeCategoriesIntoColumns(arrangedItems, activeScope)
-    local positions, categoryPositions, contentBottom = placeItemsAndBuildHeaders(activeScope, categoryAssignments,
-        itemSize)
+    local positions, categoryPositions, contentBottom = AddonNS.CategoryLayout:Calculate(categoryAssignments, activeScope,
+        itemSize, BANK_CONTENT_LEFT_PADDING, BANK_CONTENT_FIRST_ROW_Y, AddonNS.Const.COLUMN_SPACING)
 
     updateFrameSizeForContent(self, panel, contentBottom)
     refreshResizeHandle(self, panel)
@@ -1752,9 +1011,7 @@ local function tryInstallHooks()
         hideHeaders(BankView)
         hideContentArea(BankView)
         hideDropAreaOverlays(BankView)
-        hideEditModeButton(BankView)
-        hideSearchHelpButton(BankView)
-        hideSearchScopeDisabledCheckbox(BankView)
+        hideControls(BankView)
         AddonNS.CategoriesGUI:HideQueryHelpFrame()
         hideBottomBarControls(BankView)
         if BankView.resizeController then
@@ -1871,18 +1128,33 @@ AddonNS.BankViewTestHooks = {
     GetBankCapacityState = function(tabIds)
         return AddonNS.GetBankCapacityState(tabIds)
     end,
-    EvaluateSearchVisibility = evaluateSearchVisibility,
-    ResolveIncludeInSearch = resolveIncludeInSearch,
+    EvaluateSearchVisibility = function(...)
+        return AddonNS.ContainerSearch:EvaluateVisibility(...)
+    end,
+    ResolveIncludeInSearch = function(...)
+        return AddonNS.ContainerSearch:ResolveIncludeInSearch(...)
+    end,
     ShouldRetryForMissingItemData = shouldRetryForMissingItemData,
     ApplyBankScopeColumnCount = applyBankScopeColumnCount,
     ResolveTargetPanelSize = resolveTargetPanelSize,
     CalculateScaledDepositButtonWidth = calculateScaledDepositButtonWidth,
     ShouldShowBankResizeHandle = shouldShowBankResizeHandle,
     PlaceItemsAndBuildHeaders = function(scope, panel, categoryAssignments, itemSize)
-        return placeItemsAndBuildHeaders(scope, categoryAssignments, itemSize)
+        return AddonNS.CategoryLayout:Calculate(categoryAssignments, scope, itemSize,
+            BANK_CONTENT_LEFT_PADDING, BANK_CONTENT_FIRST_ROW_Y, AddonNS.Const.COLUMN_SPACING)
     end,
-    GetBackgroundHintFrame = getBackgroundHintFrame,
-    GetBackgroundColumnFallbackHintFrame = getBackgroundColumnFallbackHintFrame,
+    GetBackgroundHintFrame = function(view, frame, scope)
+        return AddonNS.CategoryBackground:GetHintFrame(frame, view.dropFrames, scope)
+    end,
+    GetBackgroundColumnFallbackHintFrame = function(view, frame, scope)
+        return AddonNS.CategoryBackground:GetColumnHintFrame(frame, scope,
+            function(relativeX, activeScope, width)
+                return view:ResolveDropColumn(relativeX, activeScope, width)
+            end,
+            function(category)
+                return view.dropFrameByCategoryId[category:GetId()]
+            end)
+    end,
 }
 
 AddonNS.Events:OnInitialize(function()
