@@ -2,6 +2,7 @@ local addonName, AddonNS = ...
 
 local TOOLTIP_MODE_SETTINGS_VARIABLE = "MYBAGS_TOOLTIP_MODE"
 local NEW_ITEMS_CATEGORIZER_SETTINGS_VARIABLE = "MYBAGS_NEW_ITEMS_CATEGORIZER_ENABLED"
+local MAXIMUM_SCALE_SETTINGS_VARIABLE = "MYBAGS_MAXIMUM_SCALE"
 local registered = false
 
 local function registerAddonSettings()
@@ -20,6 +21,12 @@ local function registerAddonSettings()
 
     local category = Settings.RegisterVerticalLayoutCategory("MyBags")
     category:SetShouldSortAlphabetically(true)
+    ScrollUtil.AddInitializedFrameCallback(SettingsPanel.CategoryList.ScrollBox, function(_, button, initializer)
+        if initializer.data.category == category then
+            button.Label:SetText("|cffff2459My|r|cffffffffBags|r")
+        end
+    end, category)
+
 
     local function getValue()
         return AddonNS.TooltipSettings:GetMode()
@@ -69,6 +76,32 @@ local function registerAddonSettings()
 
     Settings.CreateCheckbox(category, newItemsSetting,
         "Disable this to stop the built-in New Items category from matching items.")
+    local function getMaximumScalePercent()
+        return AddonNS.ScaleSettings:GetMaximumScale() * 100
+    end
+
+    local function setMaximumScalePercent(value)
+        AddonNS.ScaleSettings:SetMaximumScale(value / 100)
+        AddonNS.ApplyContainerFrameScale()
+        AddonNS.ApplyBankFrameScale()
+    end
+
+    local scaleSetting = Settings.RegisterProxySetting(
+        category,
+        MAXIMUM_SCALE_SETTINGS_VARIABLE,
+        Settings.VarType.Number,
+        "Maximum bag and bank scale",
+        AddonNS.ScaleSettings.DEFAULT_MAXIMUM_SCALE * 100,
+        getMaximumScalePercent,
+        setMaximumScalePercent
+    )
+    local scaleOptions = Settings.CreateSliderOptions(AddonNS.ScaleSettings.MINIMUM_SCALE * 100, 100, 5)
+    scaleOptions:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value)
+        return string.format("%.0f%%", value)
+    end)
+    Settings.CreateSlider(category, scaleSetting, scaleOptions,
+        "Limit the size of bags, bank, and Warbank. They can still shrink automatically to fit the screen.")
+
     Settings.RegisterAddOnCategory(category)
     registered = true
 end

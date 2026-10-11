@@ -191,6 +191,7 @@ local function load_addon(ctx)
     exec("init.lua")
     exec("tooltipSettings.lua")
     exec("newItemsSettings.lua")
+    exec("scaleSettings.lua")
     exec("bagViewState.lua")
     AddonNS.itemButtonPlaceholder = {}
 

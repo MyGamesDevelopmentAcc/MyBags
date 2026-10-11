@@ -59,3 +59,7 @@ The integration harness deliberately stubs UI libraries (`MyLibrary_GUI`, `WowLi
 `ITEM_MOVED` passes item ID, target item ID, source category, target category, source button, target button, and visual insertion side (`before`, `after`, or `end`). The side is mandatory. Cursor halves choose before/after; category targets use end. `itemsOrder.lua` translates visual placement into the existing global sequence, which the layout renders in reverse. Category drops append even within the source category. Ordering remains keyed by item ID, so stacks of the same item move together. No SavedVariables format changes are required.
 
 Shared `DragAndDrop:HookItemButton` expands mouse hit rectangles by half of `ITEM_SPACING` on every side using negative `SetHitRectInsets`. Adjacent icons therefore cover their intervening gap without changing their visible geometry. Gap focus uses the same item preview and drop handlers as the icon itself; unused category space still appends.
+
+## Maximum container scale
+
+`ScaleSettings` hydrates the maximum ratio from `settings.maximumScale` at initialization and serializes non-default values on logout. The 100% default is omitted from SavedVariables. The MyBags options slider exposes percentages from 5 to 100. Shared frame scaling caps both allocation passes and captured bag search scales, so bags, character bank, and Warbank respect the same maximum. Changing the option reapplies both frame scales directly.

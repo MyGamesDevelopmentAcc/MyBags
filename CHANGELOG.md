@@ -2,6 +2,12 @@
 
 This file tracks completed user-facing work.
 
+- [Tweak] 2026-10-11 - Matched the MyBags settings entry colours to the addon title while preserving alphabetical sorting.
+
+- [New] 2026-10-11 - Added a maximum-scale option to limit bag, bank, and Warbank growth while preserving automatic shrinking.
+
+## 12.1.0-4.2-alpha - 2026-10-11
+
 - [New] 2026-10-11 - Added item insertion markers with matching before/after and category-end placement in bags, bank, and Warbank; gaps between icons also accept item drops.
 
 ## 12.1.0-4.1-alpha - 2026-10-11

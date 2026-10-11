@@ -123,6 +123,7 @@ Please create a list of categories to import:
 * Hold `Shift` on an item tooltip to inspect matched categories and query attributes.
 * Tooltip behavior can be changed in `Settings -> AddOns -> MyBags` (`Default`, `Shift only`, `Disabled`).
 * The built-in `New Items` categorizer can be disabled in `Settings -> AddOns -> MyBags`.
+* Limit bag, bank, and Warbank size with `Maximum bag and bank scale` in the same options. The default is 100%; lower values cap growth while still allowing automatic shrinking to fit the screen.
 * Item order stays as you define it inside categories.
 * Container free space is shown in the footer.
 * You can still switch between combined bags and separate bags.

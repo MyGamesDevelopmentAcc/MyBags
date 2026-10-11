@@ -1,15 +1,16 @@
 local addonName, AddonNS = ...
 
 FrameParametersOverride = {};
-local DEFAULT_CONTAINER_SCALE = 0.05;
+local DEFAULT_CONTAINER_SCALE = AddonNS.ScaleSettings.MINIMUM_SCALE;
 local BANK_FRAME_SCREEN_PADDING = 24
 
 local function clampScale(scale)
     if scale < DEFAULT_CONTAINER_SCALE then
         return DEFAULT_CONTAINER_SCALE
     end
-    if scale > 1 then
-        return 1
+    local maximumScale = AddonNS.ScaleSettings:GetMaximumScale()
+    if scale > maximumScale then
+        return maximumScale
     end
     return scale
 end
@@ -54,8 +55,8 @@ local function computeFrameScales(screenWidth, screenHeight, containerFrameOffse
     local widthScale = computeWidthScale(screenWidth, containerFrameOffsetX, bagVisible, bagWidth, bankVisible, bankWidth)
     local bagHeightScale = computeHeightScale(bagVisible, screenHeight - CONTAINER_OFFSET_Y, bagHeight)
     local bankHeightScale = computeHeightScale(bankVisible, screenHeight - BANK_FRAME_SCREEN_PADDING * 2, bankHeight)
-    local bagInitialScale = math.min(widthScale, bagHeightScale)
-    local bankInitialScale = math.min(widthScale, bankHeightScale)
+    local bagInitialScale = clampScale(math.min(widthScale, bagHeightScale))
+    local bankInitialScale = clampScale(math.min(widthScale, bankHeightScale))
     local bagWidthScale = computeWidthScaleFromRemaining(
         availableWidth,
         bagVisible,
@@ -81,7 +82,7 @@ local function getFrameScale(frame)
     if frame == ContainerFrameCombinedBags and frame.IsSearchAnchorLockActive and frame:IsSearchAnchorLockActive() then
         local lockedScale = frame.GetSearchAnchorLockedScale and frame:GetSearchAnchorLockedScale() or nil
         if lockedScale ~= nil then
-            return lockedScale
+            return clampScale(lockedScale)
         end
     end
     local containerFrameOffsetX = EditModeUtil:GetRightActionBarWidth() + 10

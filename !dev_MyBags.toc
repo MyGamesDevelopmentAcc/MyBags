@@ -33,6 +33,7 @@ categoryStore.lua
 init.lua
 tooltipSettings.lua
 newItemsSettings.lua
+scaleSettings.lua
 addonSettings.lua
 bagViewState.lua
 collapsed.lua
