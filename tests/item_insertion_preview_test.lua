@@ -36,16 +36,27 @@ for _, scope in ipairs({ "bag", "bank-character", "bank-account" }) do
     Preview:Update()
     assert(marker:IsShown() and marker.points[1][2] == last and marker.points[1][3] == "LEFT")
     assert(marker.points[1][4] == -2, "before marker sits in gap to icon's left")
+    local textureHalfWidth = marker.Texture:GetWidth() / 2
+    assert(marker:GetWidth() == AddonNS.Const.ITEM_SPACING)
+    assert(marker.points[1][4] + textureHalfWidth <= 0,
+        "before marker artwork must stop at the target button's left edge")
+    assert(marker.points[1][4] - textureHalfWidth >= -AddonNS.Const.ITEM_SPACING,
+        "before marker artwork must not overlap the previous button")
     cursorX = 130
     Preview:Update()
     assert(marker.points[1][3] == "RIGHT" and marker.points[1][4] == 2)
+    assert(marker.points[1][4] - textureHalfWidth >= 0,
+        "after marker artwork must start at the target button's right edge")
+    assert(marker.points[1][4] + textureHalfWidth <= AddonNS.Const.ITEM_SPACING,
+        "after marker artwork must not overlap the next button")
     last:SetScale(2)
     cursorX = 210
     focus = last:CreateTexture()
     Preview:Update()
     assert(marker.points[1][2] == last and marker.points[1][3] == "LEFT", "child focus and cursor scale must resolve correctly")
     assert(marker.scale == 2 and marker:GetHeight() == 48)
-    assert(marker.Texture:GetWidth() == 52 and marker.Texture:GetHeight() == 48, "atlas glow retains Blizzard texture width")
+    assert(marker.Texture:GetWidth() == AddonNS.Const.ITEM_SPACING and marker.Texture:GetHeight() == 48,
+        "scaled marker artwork stays within the icon gap")
     last:SetScale(1)
     focus = categoryFrame
     Preview:Update()
