@@ -81,7 +81,7 @@ function Frame:SetJustifyH() end
 function Frame:SetJustifyV() end
 function Frame:SetAlpha(alpha) self.alpha = alpha end
 function Frame:SetBlendMode() end
-function Frame:SetHitRectInsets() end
+function Frame:SetHitRectInsets(...) self.hitRectInsets = { ... } end
 function Frame:SetMaxLetters(maxLetters) self.maxLetters = maxLetters end
 function Frame:SetFrameStrata() end
 function Frame:SetShadowColor() end

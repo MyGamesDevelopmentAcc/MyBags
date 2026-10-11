@@ -51,3 +51,11 @@ The integration harness deliberately stubs UI libraries (`MyLibrary_GUI`, `WowLi
 - Runtime file consumed by UI is `generated/queryHelpDocs.lua`.
 - Regenerate locally after query-doc changes: `lua tools/generate_query_help.lua`.
 - Release workflow always regenerates and verifies this file is up to date before packaging.
+
+## Item insertion previews
+
+`itemInsertionPreview.lua` draws one mouse-disabled overlay using Blizzard's `CDM-vertical` atlas. It uses the existing shared category item arrays and background target lookup across all storage scopes. It does not change item anchors during hover. Protected and collapsed categories retain their category hints without showing a precise insertion gap.
+
+`ITEM_MOVED` passes item ID, target item ID, source category, target category, source button, target button, and visual insertion side (`before`, `after`, or `end`). The side is mandatory. Cursor halves choose before/after; category targets use end. `itemsOrder.lua` translates visual placement into the existing global sequence, which the layout renders in reverse. Category drops append even within the source category. Ordering remains keyed by item ID, so stacks of the same item move together. No SavedVariables format changes are required.
+
+Shared `DragAndDrop:HookItemButton` expands mouse hit rectangles by half of `ITEM_SPACING` on every side using negative `SetHitRectInsets`. Adjacent icons therefore cover their intervening gap without changing their visible geometry. Gap focus uses the same item preview and drop handlers as the icon itself; unused category space still appends.

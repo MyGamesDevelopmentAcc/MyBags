@@ -15,6 +15,8 @@ An **easy-to-use** inventory addon for bags, bank, and warband with manual and a
 
 **Moving items between categories easily reassigns to a new category and reorders items within a category**
 
+An insertion marker shows where an item will land in bags, bank, and Warbank. Hover over the left or right half of an icon to place it before or after that item; drop onto a category to place it at the end.
+
 ![Item adjustments](https://raw.githubusercontent.com/MyGamesDevelopmentAcc/MyBags/main/.previews/move_item.gif)
 
 **Dynamic equipment categories based on your equipment sets. Please note you cannot assign an item to an equipment set category**

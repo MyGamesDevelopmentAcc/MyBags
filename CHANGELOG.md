@@ -2,10 +2,14 @@
 
 This file tracks completed user-facing work.
 
+- [New] 2026-10-11 - Added item insertion markers with matching before/after and category-end placement in bags, bank, and Warbank; gaps between icons also accept item drops.
+
+## 12.1.0-4.1-alpha - 2026-10-11
+
 - [Bugfix] 2026-10-11 - Leaving bank edit mode now prompts to save or discard unsaved category edits.
 - [Tweak] 2026-10-11 - Made category drop targeting over category item areas consistent across bags, bank, and Warbank.
 
-## 12.1.0-4.0-alpha - 2026-10-10
+## 12.1.0-4.0 - 2026-10-10
 
 - 2026-10-10 [Bugfix] Fixed bank opening and tab switching causing item use to be blocked.
 - 2026-10-10 [Bugfix] Restored bank eligibility darkening when opening or switching banks with bags already open.

@@ -246,6 +246,47 @@ run("shared item hook registration delivers category drops once", function()
     assertEqual(lastEvent.args[2], "cus-target", "item surface retains category drop behavior")
 end)
 
+run("expanded item hit areas route gaps to before and after drops", function()
+    local UI = assert(loadfile("tests/helpers/ui.lua"))()
+    for _, scope in ipairs({ "bag", "bank-character", "bank-account" }) do
+        resetDragTestState()
+        local buttons = {}
+        for slot = 1, 2 do
+            local button = UI.CreateFrame()
+            button:SetSize(40, 40)
+            button.left, button.bottom = (slot - 1) * 44, 0
+            button.ItemCategory, button.MyBagsScope = category("cus-target"), scope
+            button.GetBagID = function() return 0 end
+            button.GetID = function() return slot end
+            addonEnv.DragAndDrop:HookItemButton(button)
+            buttons[slot] = button
+        end
+        local function targetAt(x, y)
+            for _, button in ipairs(buttons) do
+                local inset = button.hitRectInsets
+                if x >= button:GetLeft() + inset[1] and x <= button:GetRight() - inset[2] and
+                    y <= button:GetTop() - inset[3] and y >= button:GetBottom() + inset[4] then
+                    return button
+                end
+            end
+        end
+        for _, gapX in ipairs({ 40.5, 41.5, 42.5, 43.5 }) do
+            local target = targetAt(gapX, 20)
+            assertTrue(target ~= nil, "every point in the icon gap belongs to an item")
+            cursorX, cursorInfoType, cursorItemId = gapX, "item", 9009
+            target:Fire("OnReceiveDrag")
+            assertEqual(lastEvent.args[2], target:GetID() == 1 and 1001 or 3003,
+                "gap drop targets neighbouring item rather than category end")
+            assertEqual(lastEvent.args[7], target:GetID() == 1 and "after" or "before")
+        end
+        assertTrue(targetAt(20, -1) == buttons[1], "bottom gap is covered")
+        assertTrue(targetAt(20, 41) == buttons[1], "top gap is covered")
+        assertEqual(targetAt(20, 43), nil, "hit expansion stops at half the row spacing")
+        assertEqual(buttons[1]:GetWidth(), 40, "hit expansion preserves visible icon size")
+    end
+    resetDragTestState()
+end)
+
 run("config mode custom category click collapses and does not select", function()
     collapsedCalls = 0
     selectedCategoryId = nil

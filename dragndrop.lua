@@ -444,6 +444,8 @@ function AddonNS.DragAndDrop:HookItemButton(itemButton)
     if itemButton.myBagAddonHooked then
         return false
     end
+    local hitPadding = -AddonNS.Const.ITEM_SPACING / 2
+    itemButton:SetHitRectInsets(hitPadding, hitPadding, hitPadding, hitPadding)
     itemButton:HookScript("OnDragStart", self.itemStartDrag)
     itemButton:HookScript("OnDragStop", self.itemStopDrag)
     itemButton:HookScript("PreClick", self.itemOnClick)
