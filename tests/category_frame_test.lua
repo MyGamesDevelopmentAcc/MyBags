@@ -47,11 +47,19 @@ StaticPopup_Show = function(name) popupName = name; return dialog end
 assert(loadfile("categoryFrame.lua"))("MyBags", AddonNS)
 local Frames = AddonNS.CategoryFrame
 local parent = UI.CreateFrame()
-local position = { category = category, itemsCount = 5 }
+local itemButton = UI.CreateFrame()
+AddonNS.itemButtonPlaceholder = {}
+local position = { category = category, itemsCount = 5, items = { itemButton, AddonNS.itemButtonPlaceholder }, itemSize = 45 }
 for _, scope in ipairs({ "bag", "bank-character", "bank-account" }) do
     local frame = Frames:Create(parent)
     Frames:Configure(frame, position, scope)
     assert(frame:GetParent() == parent and frame.MyBagsScope == scope)
+    assert(frame.MyBagsItems == position.items and frame.MyBagsItemSize == 45)
+    assert(itemButton.MyBagsCategoryFrame == frame, "item resolves its configured category frame")
+    local dropSurface = UI.CreateFrame()
+    Frames:BindItems(dropSurface, position)
+    assert(itemButton.MyBagsCategoryFrame == dropSurface, "bank body replaces header as item preview target")
+    Frames:BindItems(frame, position)
     assert(frame.fs:GetText() == "Tools" and frame:IsShown())
     assert(not frame.editButton:IsShown() and not frame.deleteButton:IsShown(), "normal mode hides edit controls")
     frame:Fire("OnReceiveDrag")
@@ -87,6 +95,7 @@ for _, scope in ipairs({ "bag", "bank-character", "bank-account" }) do
     for _, control in ipairs({ { isAddCategoryControl = true }, { isExportCategoryControl = true }, { isImportCategoryControl = true } }) do
         Frames:Configure(frame, control, scope)
         assert(frame.ItemCategory == nil and frame.addControlBackdrop:IsShown())
+        assert(frame.MyBagsItems == nil and frame.MyBagsItemSize == nil, "controls clear category preview data")
         assert(frame:GetScript("OnDragStart") == nil and frame:GetScript("OnReceiveDrag") == nil)
         assert(not frame.editButton:IsShown() and not frame.deleteButton:IsShown())
         frame:Fire("OnMouseUp", "LeftButton")

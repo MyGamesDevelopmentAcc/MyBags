@@ -56,16 +56,21 @@ end
 
 function AddonNS.CategoryBackground:Install(frame, options)
     frame.MyBagsResolveDropColumn = options.ResolveDropColumn
+    function frame:GetCategoryFrameAtCursor()
+        local scope = self.MyBagsScope
+        local hintFrame = AddonNS.CategoryBackground:GetHintFrame(self, options.GetCategoryFrames(), scope)
+        if hintFrame then
+            return hintFrame
+        end
+        return AddonNS.CategoryBackground:GetColumnHintFrame(self, scope,
+            options.ResolveDropColumn, options.GetCategoryFrame)
+    end
     local function refreshHover()
         if not AddonNS.DragAndDrop:IsItemDragActive() and not AddonNS.DragAndDrop:IsCategoryDragActive() then
             AddonNS.gui:ClearHoveredCategoryFrame(frame)
             return
         end
-        local scope = frame.MyBagsScope
-        local hintFrame = self:GetHintFrame(frame, options.GetCategoryFrames(), scope)
-        if not hintFrame then
-            hintFrame = self:GetColumnHintFrame(frame, scope, options.ResolveDropColumn, options.GetCategoryFrame)
-        end
+        local hintFrame = frame:GetCategoryFrameAtCursor()
         if hintFrame and hintFrame:IsShown() then
             AddonNS.gui:SetHoveredCategoryFrame(hintFrame)
         else

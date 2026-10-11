@@ -93,6 +93,16 @@ local function hasActiveItemDrag()
     return infoType == "item" or infoType == "merchant"
 end
 
+function AddonNS.DragAndDrop:GetDraggedItemID()
+    local infoType, itemID = getCachedCursorInfo()
+    if infoType == "merchant" then
+        return GetMerchantItemID(itemID)
+    end
+    if infoType == "item" then
+        return itemID
+    end
+end
+
 function AddonNS.DragAndDrop:IsItemDragActive()
     return hasActiveItemDrag()
 end
@@ -159,10 +169,11 @@ local function triggerItemMoved(itemID, targetedItemID, sourceCategory, targetCa
     end
     AddonNS.Events:TriggerCustomEvent(AddonNS.Const.Events.ITEM_MOVED, itemID, targetedItemID, source, target,
         pickedItemButton,
-        targetItemButton);
+        targetItemButton, AddonNS.ItemInsertionPreview:GetInsertionSide(targetItemButton));
 end
 
 function AddonNS.DragAndDrop.cleanUp()
+    AddonNS.ItemInsertionPreview:Hide()
     pickedItemButton = nil;
     pickedItemID = nil
     pickedItemCategory = nil;

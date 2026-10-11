@@ -43,6 +43,7 @@ ContainerFrameMyBagsMixin.lua
 FrameParameters.lua
 categoryBackground.lua
 dragndrop.lua
+itemInsertionPreview.lua
 columnResize.lua
 resizeHandle.lua
 categoryFrame.lua

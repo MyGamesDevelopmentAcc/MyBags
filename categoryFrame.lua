@@ -284,10 +284,22 @@ function AddonNS.CategoryFrame:Create(parentFrame)
     return headerFrame
 end
 
+function AddonNS.CategoryFrame:BindItems(frame, categoryPosition)
+    frame.MyBagsItems = categoryPosition.items
+    frame.MyBagsItemSize = categoryPosition.itemSize
+    for _, itemButton in ipairs(categoryPosition.items) do
+        if itemButton ~= AddonNS.itemButtonPlaceholder then
+            itemButton.MyBagsCategoryFrame = frame
+        end
+    end
+end
+
 function AddonNS.CategoryFrame:Configure(frame, categoryPosition, scope)
     frame.MyBagsScope = scope
     if categoryPosition.isAddCategoryControl or categoryPosition.isExportCategoryControl or categoryPosition.isImportCategoryControl then
         frame.ItemCategory = nil
+        frame.MyBagsItems = nil
+        frame.MyBagsItemSize = nil
         frame.isAddCategoryControl = true
         frame.editButton:Hide()
         frame.deleteButton:Hide()
@@ -320,6 +332,7 @@ function AddonNS.CategoryFrame:Configure(frame, categoryPosition, scope)
     else
         local category = categoryPosition.category
         frame.ItemCategory = category
+        self:BindItems(frame, categoryPosition)
         frame.isAddCategoryControl = false
         frame.controlKind = nil
         frame.addControlBackdrop:Hide()

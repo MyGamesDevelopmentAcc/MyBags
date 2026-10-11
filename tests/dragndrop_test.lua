@@ -99,6 +99,8 @@ local addonEnv = {
     TriggerContainerOnTokenWatchChanged = function() end,
     printDebug = function() end,
     Const = {
+        ITEM_SPACING = 4,
+        CATEGORY_HEIGHT = 20,
         Events = {
             ITEM_MOVED = "ITEM_MOVED",
             CATEGORY_MOVED = "CATEGORY_MOVED",
@@ -120,6 +122,10 @@ assert(loadfile("categoryBackground.lua"))("MyBags", addonEnv)
 
 local dragAndDropChunk = assert(loadfile("dragndrop.lua"))
 dragAndDropChunk("MyBags", addonEnv)
+local PreviewUI = assert(loadfile("tests/helpers/ui.lua"))()
+_G.CreateFrame = PreviewUI.CreateFrame
+_G.UIParent = PreviewUI.CreateFrame()
+assert(loadfile("itemInsertionPreview.lua"))("MyBags", addonEnv)
 
 local function assertTrue(condition, message)
     if not condition then
@@ -404,7 +410,10 @@ run("itemStopDrag clears cursor for same-scope transfer", function()
         return {
             {
                 myBagAddonHooked = true,
-                GetBagID = function()
+                GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
+        GetBagID = function()
                     return 0
                 end,
                 GetID = function()
@@ -415,6 +424,9 @@ run("itemStopDrag clears cursor for same-scope transfer", function()
     end
 
     local bagButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -438,7 +450,10 @@ run("itemStopDrag does not clear cursor for cross-scope transfer", function()
         return {
             {
                 myBagAddonHooked = true,
-                GetBagID = function()
+                GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
+        GetBagID = function()
                     return Enum.BagIndex.CharacterBankTab_1
                 end,
                 GetID = function()
@@ -449,6 +464,9 @@ run("itemStopDrag does not clear cursor for cross-scope transfer", function()
     end
 
     local bagButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -465,10 +483,14 @@ end)
 
 run("itemOnReceiveDrag replays pickup for same-scope transfer", function()
     resetDragTestState()
+    cursorX = 10
     cursorInfoType = "item"
     cursorItemId = 1001
 
     local sourceButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -478,6 +500,9 @@ run("itemOnReceiveDrag replays pickup for same-scope transfer", function()
     }
     local targetButton = {
         ItemCategory = category("cus-22"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -500,6 +525,12 @@ run("itemOnReceiveDrag replays pickup for same-scope transfer", function()
     addonEnv.DragAndDrop.itemOnReceiveDrag(targetButton)
 
     assertEqual(pickupCalls, 1, "same-scope receive drag should replay pickup")
+    assertEqual(lastEvent.args[7], "before", "left-half drop uses preview insertion side")
+
+    cursorX = 30
+    cursorInfoType, cursorItemId = "item", 1001
+    addonEnv.DragAndDrop.itemOnReceiveDrag(targetButton)
+    assertEqual(lastEvent.args[7], "after", "right-half drop uses preview insertion side")
 end)
 
 run("itemOnReceiveDrag does not replay pickup for cross-scope transfer", function()
@@ -508,6 +539,9 @@ run("itemOnReceiveDrag does not replay pickup for cross-scope transfer", functio
     cursorItemId = 1001
 
     local sourceButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -517,6 +551,9 @@ run("itemOnReceiveDrag does not replay pickup for cross-scope transfer", functio
     }
     local targetButton = {
         ItemCategory = category("cus-22"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return Enum.BagIndex.CharacterBankTab_1
         end,
@@ -547,6 +584,9 @@ run("itemOnClick does not apply fast-path for cross-scope transfer", function()
     cursorItemId = 1001
 
     local sourceButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -556,6 +596,9 @@ run("itemOnClick does not apply fast-path for cross-scope transfer", function()
     }
     local targetButton = {
         ItemCategory = category("cus-22"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return Enum.BagIndex.CharacterBankTab_1
         end,
@@ -596,7 +639,10 @@ run("itemStopDrag uses parent scoped frame to detect cross-scope transfer", func
         return {
             {
                 myBagAddonHooked = true,
-                GetBagID = function()
+                GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
+        GetBagID = function()
                     return nil
                 end,
                 GetID = function()
@@ -610,6 +656,9 @@ run("itemStopDrag uses parent scoped frame to detect cross-scope transfer", func
     end
 
     local bagButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -637,6 +686,9 @@ run("categoryOnReceiveDrag places item into available empty slot for cross-scope
     cursorItemId = 1001
 
     local sourceButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -672,6 +724,9 @@ run("backgroundOnReceiveDrag places item into available empty slot for cross-sco
     cursorY = 50
 
     local sourceButton = {
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -723,6 +778,9 @@ run("categoryOnReceiveDrag emits non-item-target move anchor", function()
 
     local sourceButton = {
         ItemCategory = category("cus-11"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -732,6 +790,9 @@ run("categoryOnReceiveDrag emits non-item-target move anchor", function()
     }
     local targetItemA = {
         ItemCategory = category("cus-22"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -741,6 +802,9 @@ run("categoryOnReceiveDrag emits non-item-target move anchor", function()
     }
     local targetItemB = {
         ItemCategory = category("cus-22"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -775,6 +839,7 @@ run("categoryOnReceiveDrag emits non-item-target move anchor", function()
 
     assertEqual(lastEvent.name, "ITEM_MOVED", "category assignment should emit item move")
     assertEqual(lastEvent.args[2], nil, "category assignment should not target a hovered item")
+    assertEqual(lastEvent.args[7], "end", "category assignment appends in visual order")
 end)
 
 run("backgroundOnReceiveDrag emits non-item-target move anchor", function()
@@ -786,6 +851,9 @@ run("backgroundOnReceiveDrag emits non-item-target move anchor", function()
 
     local sourceButton = {
         ItemCategory = category("cus-11"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -795,6 +863,9 @@ run("backgroundOnReceiveDrag emits non-item-target move anchor", function()
     }
     local targetItemA = {
         ItemCategory = category("target-bag"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,
@@ -804,6 +875,9 @@ run("backgroundOnReceiveDrag emits non-item-target move anchor", function()
     }
     local targetItemB = {
         ItemCategory = category("target-bag"),
+        GetEffectiveScale = function() return 1 end,
+        GetLeft = function() return 0 end,
+        GetWidth = function() return 40 end,
         GetBagID = function()
             return 0
         end,

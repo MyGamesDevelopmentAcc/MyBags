@@ -36,9 +36,6 @@ end
 function AddonNS.ItemsOrder:Sort(itemButtonsList)
     -- Create a map for quick lookup of the order positions
     if (itemButtonsList[1] == AddonNS.itemButtonPlaceholder) then return; end;
-    if #itemButtonsList <= 1 then
-        return
-    end
 
     recreateAnOrderMapIfNeeded()
     local itemToItemIDMap = {};
@@ -113,56 +110,40 @@ function AddonNS.ItemsOrder:Sort(itemButtonsList)
     end
 end
 
-local function ItemsMoved(previousItemID, pickedItemID, changedCategory)
-    recreateAnOrderMapIfNeeded();
-    local pickedNo = order_map[pickedItemID];
-    if changedCategory and not previousItemID then
-        if not pickedNo then
-            return
-        end
-        table.insert(items_current_order, 1, table.remove(items_current_order, pickedNo))
-        order_map_changed = true
+function AddonNS.ItemsOrder:Move(itemID, targetedItemID, targetCategory, insertionSide)
+    assert(insertionSide == "before" or insertionSide == "after" or insertionSide == "end",
+        "ItemsOrder:Move requires a visual insertion side")
+    if targetCategory:IsProtected() then
         return
     end
-    if not previousItemID then
+    if itemID == targetedItemID then
         return
     end
-    local prevNo = order_map[previousItemID];
-
-    if not prevNo or not pickedNo then
-        -- Missing from order map; ignore to avoid breaking reassignment.
-        return
-    end
-
-    if changedCategory then
-        table.remove(items_current_order, pickedNo)
-        table.insert(items_current_order, prevNo + (prevNo > pickedNo and 0 or 1), pickedItemID)
+    recreateAnOrderMapIfNeeded()
+    local pickedIndex = order_map[itemID]
+    local insertIndex
+    if insertionSide == "end" then
+        assert(targetedItemID == nil, "End insertion must target a category")
+        -- The visible layout reverses this global sequence, so index one is
+        -- the visual end of every category, including the source category.
+        insertIndex = 1
     else
-        table.insert(items_current_order, prevNo, table.remove(items_current_order, pickedNo))
+        assert(targetedItemID, "Item insertion requires a target item ID")
+        local targetIndex = assert(order_map[targetedItemID], "Target item missing from order map")
+        if pickedIndex and pickedIndex < targetIndex then
+            targetIndex = targetIndex - 1
+        end
+        insertIndex = insertionSide == "before" and targetIndex + 1 or targetIndex
     end
-    order_map_changed = true;
+    if pickedIndex then
+        table.remove(items_current_order, pickedIndex)
+    end
+    table.insert(items_current_order, insertIndex, itemID)
+    order_map_changed = true
 end
 
-local function itemMoved(eventName, pickedItemID, targetedItemID, pickedCategoryId, targetCategoryId,
-                         pickedItemButton,
-                         targetItemButton)
-    local function resolveCategory(categoryOrId)
-        if not categoryOrId then
-            return nil
-        end
-        if type(categoryOrId) == "table" then
-            return categoryOrId
-        end
-        return AddonNS.CategoryStore:Get(categoryOrId)
-    end
-
-    local pickedCategory = resolveCategory(pickedCategoryId)
-    local targetCategory = resolveCategory(targetCategoryId)
-    local sameCategory = pickedCategory and targetCategory and pickedCategory:GetId() == targetCategory:GetId()
-    local targetProtected = targetCategory and targetCategory:IsProtected() or false
-    local pickedProtected = pickedCategory and pickedCategory:IsProtected() or false
-    if sameCategory or (not targetProtected and not pickedProtected) then
-        ItemsMoved(targetedItemID, pickedItemID, not sameCategory)
-    end
+local function itemMoved(eventName, itemID, targetedItemID, sourceCategory, targetCategory,
+                         sourceButton, targetButton, insertionSide)
+    AddonNS.ItemsOrder:Move(itemID, targetedItemID, targetCategory, insertionSide)
 end
 AddonNS.Events:RegisterCustomEvent(AddonNS.Const.Events.ITEM_MOVED, itemMoved)

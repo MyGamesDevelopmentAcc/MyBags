@@ -1000,7 +1000,7 @@ run("manual assign to first query-match category via item-move is ignored", func
 
     install_item_query_stubs(2001)
 
-    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 2001, nil, catB, catA, item_button(0, 1), nil)
+    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 2001, nil, catB, catA, item_button(0, 1), nil, "end")
 
     assert_true(ctx.AddonNS.CustomCategories:IsManuallyAssignedToCategory(2001, catA) == false,
         "manual assignment to first query-match category is ignored")
@@ -1036,7 +1036,7 @@ run("manual assign is not ignored when global winner is not target category", fu
     ctx.AddonNS.Categories.Categorize = function()
         return catB
     end
-    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 2001, nil, catB, catA, item_button(0, 1), nil)
+    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 2001, nil, catB, catA, item_button(0, 1), nil, "end")
     ctx.AddonNS.Categories.Categorize = originalCategorize
 
     assert_true(ctx.AddonNS.CustomCategories:IsManuallyAssignedToCategory(2001, catA) == true,
@@ -1051,7 +1051,7 @@ run("always visible empty category stays empty in arranged output", function()
     local other = ctx.AddonNS.CustomCategories:NewCategory("Other")
     ctx.AddonNS.CategorShowAlways:SetAlwaysShow(always, true)
     local assignments = ctx.AddonNS.Categories:ArrangeCategoriesIntoColumns({
-        [other] = { item_button(0, 1) },
+        [other] = { { _myBagsItemId = 1001 } },
     })
 
     local alwaysEntry = nil
@@ -1207,7 +1207,7 @@ run("item move reassigns through hooks and respects protected target", function(
     ctx.AddonNS.db.itemOrder[1] = 101
     ctx.AddonNS.db.itemOrder[2] = 102
 
-    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 101, 102, catA, catB, item_button(0, 1), item_button(0, 2))
+    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED, 101, 102, catA, catB, item_button(0, 1), item_button(0, 2), "before")
     ctx:events():fire_game("PLAYER_LOGOUT")
 
     local snapshot = ctx:snapshot()
@@ -1223,7 +1223,7 @@ run("item move reassigns through hooks and respects protected target", function(
     local src = ctx2.AddonNS.CustomCategories:NewCategory("Src")
     ctx2.AddonNS.CustomCategories:AssignToCategory(src, 201)
     ctx2.AddonNS.db.itemOrder[1] = 201
-    ctx2:events():fire_custom(ctx2.AddonNS.Const.Events.ITEM_MOVED, 201, nil, src, prot, item_button(0, 1), nil)
+    ctx2:events():fire_custom(ctx2.AddonNS.Const.Events.ITEM_MOVED, 201, nil, src, prot, item_button(0, 1), nil, "end")
     ctx2:events():fire_game("PLAYER_LOGOUT")
     local snap2 = ctx2:snapshot()
     local custom2 = custom_snapshot(snap2)
@@ -1231,6 +1231,29 @@ run("item move reassigns through hooks and respects protected target", function(
     local protData = custom2.categories[prot:GetId():match("^[^%-]+%-(.+)$")]
     assert_equal({ 201 }, srcData.items, "protected target prevents reassignment")
     assert_equal({}, protData.items, "protected target stays empty")
+end)
+
+run("item insertion order survives logout and reload", function()
+    local ctx = harness.new()
+    local category = ctx.AddonNS.CustomCategories:NewCategory("Ordered")
+    for _, id in ipairs({ 101, 102, 103 }) do
+        ctx.AddonNS.CustomCategories:AssignToCategory(category, id)
+        table.insert(ctx.AddonNS.db.itemOrder, id)
+    end
+    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED,
+        101, 102, category, category, nil, nil, "before")
+    ctx:events():fire_game("PLAYER_LOGOUT")
+    local snapshot = ctx:snapshot()
+    assert_equal({ 102, 101, 103 }, snapshot.itemOrder, "before insertion saved in reverse visual order")
+    ctx = harness.new({ saved = snapshot })
+    category = ctx.AddonNS.CategoryStore:Get(category:GetId())
+    ctx:events():fire_custom(ctx.AddonNS.Const.Events.ITEM_MOVED,
+        103, nil, category, category, nil, nil, "end")
+    ctx:events():fire_game("PLAYER_LOGOUT")
+    snapshot = ctx:snapshot()
+    assert_equal({ 103, 102, 101 }, snapshot.itemOrder, "same-category end insertion persists")
+    ctx = harness.new({ saved = snapshot })
+    assert_equal({ 103, 102, 101 }, ctx.AddonNS.db.itemOrder, "reload restores end insertion")
 end)
 
 run("clearing inputs removes stored data", function()

@@ -845,6 +845,7 @@ local function renderHeaders(self, scope, panel, categoryPositions)
             dropFrame:Hide()
         else
             dropFrame.ItemCategory = categoryPosition.category
+            AddonNS.CategoryFrame:BindItems(dropFrame, categoryPosition)
             dropFrame.fs = frame.fs
             dropFrame.MyBagsScope = scope
             dropFrame.MyBagsContainerRef = panel

@@ -88,6 +88,8 @@ function AddonNS.CategoryLayout:Calculate(categoryAssignments, scope, itemSize, 
             end
             table.insert(categoryPositions, {
                 category = category,
+                items = items,
+                itemSize = itemSize,
                 itemsCount = itemsCount,
                 x = columnStartX + itemSize * #currentRow - ITEM_SPACING / 2,
                 y = currentRowY - CATEGORY_HEIGHT,
